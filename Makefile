@@ -31,3 +31,6 @@ lexer: ensure_bin
 	$(CC) $(CFLAGS) $(SRC)lexer.c -o ./bin/lexer
 	./bin/lexer
 
+big: ensure_bin
+	$(CC) $(CFLAGS) $(SRC)big.c -o ./bin/big
+	./bin/big
