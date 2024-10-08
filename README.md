@@ -2,7 +2,7 @@
 
 ## Parser
 
-### Parse statistics
+### Statistics
 1841408 lines and 16572616 tokens
  - Lines per second: 170748.984375
  - Time; 10.78s
