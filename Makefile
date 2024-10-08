@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Ofast -Wpedantic -Werror -I./3rdparty
+CFLAGS = -Wall -Wextra -Ofast -Wpedantic -Werror -I./3rdparty -isystem ./3rdparty
 SRC = ./src/
 
 all: buffer lexer build run format
