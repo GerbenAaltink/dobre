@@ -41,25 +41,26 @@ int main() {
                    "    Boolean bool2 = 0\n"
                    "    class Myclass(){}\n"
                    "    class MyClass2(MyClass){}";
-    nsecs_t time_start = nsecs();
     lexer_t * lexer = lexer_new();
      lexer = lexer_parse(lexer, script);
+
+    print("Only lexing:\n");
+    nsecs_t time_start = nsecs();
     parse(lexer);
     unsigned int lines = lexer->lines;
     unsigned int token_count = lexer->count;
     lexer_delete(lexer);
     nsecs_t time_end = nsecs();
     nsecs_t duration = time_end - time_start;
-    print("Full parsing (lex+parse):\n");
     print("Time: %s\n", format_time(duration));
      print("Lines per second: %f\n",
            ((float)lines) / (duration / 1000000000.0f));
-    
+    print("Full parsing (lexing+parsing):\n");
       time_start = nsecs();
     parse_string(script);
      time_end = nsecs();
      duration = time_end - time_start;
-    print("Full parsing (lex+parse):\n");
+    
     print("Time: %s\n", format_time(duration));
      print("Lines per second: %f\n",
            ((float)lines) / (duration / 1000000000.0f));
