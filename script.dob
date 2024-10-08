@@ -1,0 +1,19 @@
+class Base(){
+    void _value = null 
+    Array events
+    void _get(){
+        return this._value;
+    }
+    void _set(value){
+        this._value = value;
+    }
+
+}
+class String(Base){}
+class Integer(Base){}
+class Boolean(Base){}
+class Token(a,b,c){}
+
+void ** pony = 5
+
+void ** brony = 5
