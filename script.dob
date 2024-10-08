@@ -1,5 +1,5 @@
 class Base    (){
-    void _value = null 
+    void _value = 1336 
     
 }
 void value_between = 1337
@@ -20,4 +20,4 @@ void ** pony = 5
 
 void ** brony = 5
 
-Boolean mytest = true
+Boolean mytest = 1335

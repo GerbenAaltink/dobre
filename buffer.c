@@ -1,7 +1,6 @@
 #include "buffer.h"
 
-int main()
-{
+int main() {
 
     buffer_t *buff = buffer_new(NULL, 0);
     buffer_write(buff, "hello", 5);
@@ -21,8 +20,8 @@ int main()
     assert(buff->pos == 0);
     assert(buff->size == 5);
 
-    assert(!string_match_option("test","^test"));
-    assert(string_match_option("test","test"));
-    assert(string_match_option("a","d|e|f|a"));
+    assert(!string_match_option("test", "^test"));
+    assert(string_match_option("test", "test"));
+    assert(string_match_option("a", "d|e|f|a"));
     //", buffer_to_str(buff));
 }

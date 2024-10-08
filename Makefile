@@ -9,6 +9,9 @@ build:
 run:
 	./dobre ./script.dob
 
+format:
+	clang-format -i *.h *.c
+
 valgrind: build
 	valgrind --leak-check=full ./dobre ./valgrind.dob
 
