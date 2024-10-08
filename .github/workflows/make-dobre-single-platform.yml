@@ -25,4 +25,8 @@ jobs:
     - name: Test all
       working-directory: ${{github.workspace}}
       run: make
+    
+    - name: Bench
+      working-directory: ${{github.workspace}}
+      run: make big
 
