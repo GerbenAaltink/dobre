@@ -1,5 +1,5 @@
 # Dobre - general purpose language
-
+![workflow](https://github.com/GerbenAaltink/dobre/actions/workflows/make-dobre-single-platform.yml/badge.svg)
 ## Parser
 
 ### Statistics
