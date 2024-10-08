@@ -225,18 +225,12 @@ ast_t *parse_class_definition(parser_t *parser) {
         }
         assert(definition->body);
         if (!array_push_string(parser->class_list, definition->name)) {
-            parser_raise(parser, "Class already defined: %s", definition->name);
+            parser_raise(parser, "Class already defined: %s\n", definition->name);
             exit(3);
         }
         return (ast_t *)definition;
-        // printf("YEAHH!!\n");
-    } else {
-        ast_t *variable_definition = parse_variable_definition(parser);
-        if (variable_definition)
-            return variable_definition;
-        // parse_remainder(parser);
     }
-    return NULL;
+    return parse_variable_definition(parser);;
 }
 
 ast_t *parse(lexer_t *lexer) {
@@ -255,8 +249,8 @@ ast_t *parse(lexer_t *lexer) {
         if (result) {
             ast_delete(result);
         } else {
-            parser_expect(parser, -1);
-            exit(3);
+            parser_expect(parser, 0,-1);
+            //exit(3);
             token_dump(parser->current_token);
         }
     }
@@ -287,7 +281,7 @@ void parse_file(char *filepath) {
 
     parse(lexer);
     // lexer_dump(lexer);
-    printf("%d lines and %d tokens\n", lexer->lines, lexer->count);
+    print("%d lines and %d tokens\n", lexer->lines, lexer->count);
     lexer_delete(lexer);
     free(content);
 }
