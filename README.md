@@ -1,5 +1,24 @@
 # Dobre - general purpose language
 ![workflow](https://github.com/GerbenAaltink/dobre/actions/workflows/make-dobre-single-platform.yml/badge.svg)
+
+## Usage
+
+### Compliation
+Run `make build`
+### Tests
+Run `make test`
+### Run custom file
+Execute `./bin/dobre [file]`
+### Example source
+```
+class A {}
+class B(A){
+    A a = 0
+}
+B b = 1
+```
+
+
 ## Parser
 
 ### Statistics
