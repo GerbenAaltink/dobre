@@ -1,21 +1,24 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Ofast -Wpedantic -Werror
+CFLAGS = -Wall -Wextra -Ofast -Wpedantic -Werror -I./3rdparty
 SRC = ./src/
 
-all: buffer lexer build run
+all: buffer lexer build run format
 
-build: 
+test: buffer lexer run
+
+build: ensure_bin 
 	$(CC) $(CFLAGS) $(SRC)main.c -o dobre
 	cp dobre ./bin/dobre
 
 run:
-	./dobre ./test/script.dob
+	./bin/dobre ./scripts/script.dob
 
 format:
-	clang-format -i $(SRC)*.h $(SRC)*.c
+	@clang-format -i $(SRC)*.h $(SRC)*.c
+	@echo "Formatted source code."
 
 valgrind: build
-	valgrind --leak-check=full ./bin/dobre ./test/valgrind.dob
+	valgrind --leak-check=full ./bin/dobre ./scripts/valgrind.dob
 
 ensure_bin: 
 	@mkdir ./bin 2> /dev/null | true 
