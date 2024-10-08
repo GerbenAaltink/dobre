@@ -25,7 +25,8 @@ typedef enum token_type_t {
     TOKEN_DOT = 61,
     TOKEN_WHITESPACE = 1,
     TOKEN_UNKNOWN = 0,
-    TOKEN_STAR = 62
+    TOKEN_STAR = 62,
+    TOKEN_MACRO = 4
 } token_type_t;
 
 typedef struct token_t {
@@ -138,6 +139,15 @@ token_t *token_next(lexer_t *lexer) {
         }
         buffer_pop(lexer->buffer);
         token->value = buffer_to_str(buffer);
+    } else if (c == '#') {
+        buffer_pop(lexer->buffer);
+        buffer_t *buffer = buffer_new(NULL, 0);
+        while ((c = buffer_peek(lexer->buffer)) != '\n') {
+            c = buffer_pop(lexer->buffer);
+            buffer_push(buffer, c);
+        }
+        token->value = buffer_to_str(buffer);
+        token->type = TOKEN_MACRO;
     } else if (c == '/' && buffer_peek(lexer->buffer) == '/') {
         buffer_pop(lexer->buffer);
         buffer_t *buffer = buffer_new(NULL, 0);
