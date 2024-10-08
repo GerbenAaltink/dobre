@@ -4,8 +4,8 @@
 
 ### Parse statistics
 1841408 lines and 16572616 tokens
-Lines per second: 170748.984375
-Time; 10.78s
+ - Lines per second: 170748.984375
+ - Time; 10.78s
 
 ### Features at the moment
  - declare class optionally classes to extend. These are two different notations.
