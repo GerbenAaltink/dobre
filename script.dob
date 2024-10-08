@@ -1,19 +1,23 @@
-class Base(){
+class Base    (){
     void _value = null 
-    Array events
-    void _get(){
-        return this._value;
-    }
-    void _set(value){
-        this._value = value;
-    }
+    
+}
+void value_between = 1337
+class String (Base){
+
+    void another_check = 1338
 
 }
-class String(Base){}
-class Integer(Base){}
-class Boolean(Base){}
-class Token(a,b,c){}
+class Integer(Base) {}
+class Boolean (Base) {}
+class Token  (String a, String b, String c) {}
+class Trip2 () {
+    int inside_class_without_extends = 1
 
+}
+//moooi
 void ** pony = 5
 
 void ** brony = 5
+
+Boolean mytest = true

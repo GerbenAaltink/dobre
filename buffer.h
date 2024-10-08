@@ -1,3 +1,5 @@
+#ifndef BUFFER_H
+#define BUFFER_H
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -21,7 +23,15 @@ size_t buffer_push(buffer_t *buff, char);
 char buffer_pop(buffer_t *buff);
 char * buffer_expect(buffer_t *buff, char * options,char * ignore);
 void buffer_set(buffer_t *buff, const char *data, size_t size);   
+void buffer_unread(buffer_t *buff, unsigned int);
 
+void buffer_unread(buffer_t *buff, unsigned int count){
+    if(count > buff->pos){
+        return ;
+    }
+    buff->pos -= count;
+    buff->ptr -= count;
+}
 
 void buffer_set(buffer_t *buff, const char * data, size_t size){
     if(buff->ptr){
@@ -92,7 +102,7 @@ void buffer_write(buffer_t *buff, const char *data, size_t size){
 char buffer_peek(buffer_t *buff){
     char result = EOF;
     if(buff->pos != buff->size){
-        result = buff->ptr[buff->pos];
+        result = *(buff->ptr);
         return result;
     }
     buff->eof = true;
@@ -216,4 +226,4 @@ char * buffer_consume(buffer_t * buff, char * options, char *ignore){
     }
     return result;
 }
-
+#endif

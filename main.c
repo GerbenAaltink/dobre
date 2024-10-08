@@ -1,4 +1,5 @@
 #define RMALLOC_OVERRIDE 1
+#define RMALLOC_DEBUG 1
 #include <rlib.h>
 #include "class.h"
 #include "lexer.h"

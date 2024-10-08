@@ -1,6 +1,6 @@
 #ifndef AST_H
 #define AST_H
-
+#include "array.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -12,7 +12,8 @@ typedef enum ast_type_t
     AST_VALUE,
     AST_CLASS_DECLARATION,
     AST_VAR_DECLARATION,
-    AST_ASSIGNMENT
+    AST_ASSIGNMENT,
+    AST_ARRAY
 } ast_type_t;
 
 typedef struct ast_t
@@ -33,6 +34,8 @@ typedef struct ast_class_definition_t
 {
     ast_t node;
     char *name;
+    ast_t *body;
+    array_t *extends;
 } ast_class_definition_t;
 
 typedef struct ast_var_declaration_t
@@ -64,17 +67,18 @@ void ast_init(ast_t *ast)
 {
     ast->children = NULL;
     ast->children_count = 0;
-    ast->type = AST_VALUE;
+    ast->type = AST_NODE;
 }
 
 void ast_value_delete(ast_value_t *value);
 void ast_class_definition_delete(ast_class_definition_t *definition);
 void ast_var_declaration_delete(ast_var_declaration_t *declaration);
-void ast_assignment_delete(ast_assignment_t *assignment);   
+void ast_assignment_delete(ast_assignment_t *assignment);
 void ast_delete(ast_t *node)
 {
     ast_dump(node);
     ast_t *child = node;
+
     if (child->type == AST_VALUE)
         ast_value_delete((ast_value_t *)child);
     else if (child->type == AST_CLASS_DECLARATION)
@@ -109,7 +113,8 @@ void ast_assignment_dump(ast_assignment_t *assignment);
 
 void ast_dump(ast_t *node)
 {
-    printf("%p", &node);
+    if (!node)
+        return;
     if (node->type == AST_VALUE)
     {
         ast_value_dump((ast_value_t *)node);
@@ -125,10 +130,6 @@ void ast_dump(ast_t *node)
     else if (node->type == AST_ASSIGNMENT)
     {
         ast_assignment_dump((ast_assignment_t *)node);
-    }
-    for (unsigned int i = 0; i < node->children_count; i++)
-    {
-        ast_dump(node->children[i]);
     }
 }
 
@@ -151,16 +152,42 @@ ast_class_definition_t *ast_class_definition_new(char *name)
     ast_init(&result->node);
     result->node.type = AST_CLASS_DECLARATION;
     result->name = strdup(name);
+    result->body = NULL;
+    result->extends = NULL;
     return result;
 }
 void ast_class_definition_delete(ast_class_definition_t *definition)
 {
+    if (definition->extends)
+    {
+        array_delete(definition->extends);
+    }
     if (definition->name)
         free(definition->name);
+    if (definition->body)
+    {
+        ast_delete(definition->body);
+    }
 }
 void ast_class_definition_dump(ast_class_definition_t *definition)
 {
-    printf("Type: class definition. Name: %s\n", definition->name);
+    printf("Defined class %s", definition->name);
+    printf("(");
+    if (definition->extends && definition->extends->count > 0)
+    {
+        for (unsigned int i = 0; i < definition->extends->count; i++)
+        {
+            if (definition->extends->data[i]->value)
+            {
+                printf("%s", (char *)definition->extends->data[i]->value);
+            }
+            if (i != definition->extends->count - 1)
+            {
+                printf(",");
+            }
+        }
+    }
+    printf(")\n");
 }
 
 ast_var_declaration_t *ast_var_declaration_new(char *type, char *identifier)
@@ -176,7 +203,12 @@ ast_var_declaration_t *ast_var_declaration_new(char *type, char *identifier)
 }
 void ast_var_declaration_dump(ast_var_declaration_t *declaration)
 {
-    printf("Type: var declration. Identifier: %s\n", declaration->identifier);
+    printf("Declared variable %s with type %s", declaration->identifier, declaration->type);
+    for (int i = 0; i < declaration->stars; i++)
+    {
+        printf("*");
+    }
+    printf("\n");
 }
 void ast_var_declaration_delete(ast_var_declaration_t *declaration)
 {
@@ -187,7 +219,7 @@ void ast_var_declaration_delete(ast_var_declaration_t *declaration)
 }
 void ast_assignment_dump(ast_assignment_t *assignment)
 {
-    printf("Type: assignment. Identifier: %s Value: %s\n", assignment->identifier, assignment->value->value);
+    printf("Assigned %s with \"%s\"\n", assignment->identifier, assignment->value->value);
 }
 ast_assignment_t *ast_assignment_new(char *identifier, ast_value_t *value)
 {
@@ -203,6 +235,27 @@ void ast_assignment_delete(ast_assignment_t *assignment)
 {
     free(assignment->identifier);
     ast_value_delete(assignment->value);
+}
+
+ast_t *ast_closure_new()
+{
+    ast_t *closure = (ast_t *)malloc(sizeof(ast_t));
+    ast_init(closure);
+    return closure;
+}
+void ast_closure_delete(ast_t *closure)
+{
+    return;
+}
+ast_t *ast_array_new()
+{
+    ast_t *array = (ast_t *)malloc(sizeof(ast_t));
+    ast_init(array);
+    return array;
+}
+void ast_array_delete(ast_t *array)
+{
+    return;
 }
 
 #endif

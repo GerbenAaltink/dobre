@@ -9,6 +9,9 @@ build:
 run:
 	./dobre ./script.dob
 
+valgrind: build
+	valgrind --leak-check=full ./dobre ./valgrind.dob
+
 test_buffer:
 	$(CC) $(CFLAGS) buffer.c -o buffer
 	./buffer

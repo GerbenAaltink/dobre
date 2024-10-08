@@ -19,8 +19,8 @@ typedef enum token_type_t {
     TOKEN_PAREN_CLOSE = 32,
     TOKEN_BRACE_OPEN = 33,
     TOKEN_BRACE_CLOSED = 44,
-    TOKEN_COMMENT = 50,
-    TOKEN_MULTILINE_COMMENT = 51,
+    TOKEN_COMMENT = 2,
+    TOKEN_MULTILINE_COMMENT = 3,
     TOKEN_IS = 60,
     TOKEN_DOT = 61,
     TOKEN_WHITESPACE = 1,
@@ -89,17 +89,18 @@ token_t * token_next(lexer_t * lexer){
     token->line = lexer->buffer->line;
     token->col = lexer->buffer->col;
     if(c == '{'){
-        token->type = TOKEN_PAREN_OPEN;
+        token->type = TOKEN_BRACE_OPEN;
         token->value = cdup(c);
     }else if(c == '}'){
-        token->type = TOKEN_PAREN_CLOSE;
+        token->type = TOKEN_BRACE_CLOSED;
         token->value = cdup(c);
     }else if(isdigit(c) || (c =='-' && isdigit(buffer_peek(lexer->buffer)))){ 
         token->type = TOKEN_NUMBER;
         buffer_t * buffer = buffer_new(NULL,0);
         buffer_push(buffer, c);
         unsigned int dot_count = 0;
-        while(isnumberchar((c = buffer_pop(lexer->buffer)))){
+        while(isnumberchar((c = buffer_peek(lexer->buffer)))){
+            c = buffer_pop(lexer->buffer);
             if(c == '.')
             {   
                 dot_count++;
@@ -112,7 +113,8 @@ token_t * token_next(lexer_t * lexer){
     }else if(issymbolchar(c)){
         buffer_t * buffer = buffer_new(NULL,0);
         buffer_push(buffer,c);
-        while(issymbolchar((c = buffer_pop(lexer->buffer)))){
+        while(issymbolchar((c = buffer_peek(lexer->buffer)))){
+            c = buffer_pop(lexer->buffer);
             buffer_push(buffer,c);
         }
         token->value = buffer_to_str(buffer);
@@ -146,7 +148,8 @@ token_t * token_next(lexer_t * lexer){
     }else if(c == '/' && buffer_peek(lexer->buffer) == '/'){
         buffer_pop(lexer->buffer);
         buffer_t * buffer = buffer_new(NULL,0);
-        while((c = buffer_pop(lexer->buffer)) != '\n'){
+        while((c = buffer_peek(lexer->buffer)) != '\n'){
+            c = buffer_pop(lexer->buffer);
             buffer_push(buffer,c);
         }
         token->value = buffer_to_str(buffer);
@@ -179,7 +182,20 @@ token_t * token_next(lexer_t * lexer){
     }else if(c == '*'){
         token->type = TOKEN_STAR;
         token->value = cdup(c);   
-    }else{
+    }else if(c == '('){
+        token->type = TOKEN_PAREN_OPEN;
+        token->value = cdup(c);
+    }else if(c == ')'){
+        token->type = TOKEN_PAREN_CLOSE;
+        token->value = cdup(c);
+    }else if(c == '{'){
+        token->type = TOKEN_BRACE_OPEN;
+        token->value = cdup(c);
+    }else if(c == '}'){
+        token->type = TOKEN_BRACE_CLOSED;
+        token->value = cdup(c);
+    }
+    else{
         token->type = TOKEN_UNKNOWN;
         token->value = cdup(c);
     }
