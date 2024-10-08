@@ -1,4 +1,4 @@
-# dobre
+# Dobre - general purpose language
 
 ## Parser
 
