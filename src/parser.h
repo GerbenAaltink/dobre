@@ -12,7 +12,7 @@ typedef struct parser_t {
     unsigned int token_index;
     array_t *class_list;
 } parser_t;
-
+token_t *parser_next(parser_t *parser);
 ast_t *parse_class_definition(parser_t *parser);
 parser_t *parser_new(lexer_t *lexer) {
     parser_t *result = (parser_t *)malloc(sizeof(parser_t));
@@ -21,6 +21,9 @@ parser_t *parser_new(lexer_t *lexer) {
     result->token_index = 0;
     result->class_list = array_new();
     result->current_token = lexer->count ? lexer->tokens[0] : NULL;
+    if(result->current_token && result->current_token->type < 10) {
+        parser_next(result);
+    }
     return result;
 }
 void parser_delete(parser_t *parser) {
@@ -104,7 +107,7 @@ ast_t *parse_variable_definition(parser_t *parser) {
     token_t *token = parser->current_token;
     bool matched_variable_identifier =
         string_match_option(token->value, variable_identifiers);
-    if (!matched_variable_identifier) {
+    if (!matched_variable_identifier && parser->class_list->count) {
         char *user_defined_classes_string =
             array_to_option_string(parser->class_list);
         printf("User defined classes: %s\n", user_defined_classes_string);
@@ -243,7 +246,7 @@ ast_t *parse(lexer_t *lexer) {
         token_before = parser->current_token;
         ast_t *result = parse_class_definition(parser);
         token_after = parser->current_token;
-        if (token_after == token_before) {
+        if (token_before && token_after == token_before) {
             printf("Warning: no token change for: \n");
             token_dump(token_before);
             parser_next(parser);
@@ -275,6 +278,13 @@ char *read_file_contents(char *filename) {
     buffer[length] = 0;
     fclose(file);
     return buffer;
+}
+
+void parse_string(char * script){
+     lexer_t *lexer = lexer_new();
+    lexer = lexer_parse(lexer, script);
+    parse(lexer);
+    lexer_delete(lexer);
 }
 
 void parse_file(char *filepath) {

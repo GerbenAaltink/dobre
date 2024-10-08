@@ -231,13 +231,12 @@ void lexer_add_token(lexer_t *lexer, token_t *token) {
 lexer_t *lexer_parse(lexer_t *lexer, char *source) {
     lexer->source = strdup(source);
     lexer->buffer = buffer_new(source, strlen(source));
-    while (lexer->buffer->eof == false) {
-        token_t *token = token_next(lexer);
-        if (!token)
-            break;
-        lexer->lines = token->line;
+    token_t *token;
+    while (lexer->buffer->eof == false && (token = token_next(lexer))) {
         lexer_add_token(lexer, token);
     }
+    if(lexer->count)
+        lexer->lines = lexer->tokens[lexer->count - 1]->line;
     return lexer;
 }
 

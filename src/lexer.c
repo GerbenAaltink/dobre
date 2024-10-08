@@ -3,9 +3,19 @@
 
 int main() {
     printf("Testing lexer.c\n");
-    char *script = "class Myclass{}\n"
-                   "MyClass c = 3\n"
-                   "class MyClass2(MyClass){}\n";
+    char *script = "    // comment\n"
+                   "    /* multiline comment */\n"
+                   "    Number number1 = -1\n"
+                   "    Number number2 = 2\n"
+                   "    Number number3 = 3.0\n"
+                   "    Number number4 = -3.0\n"
+                   "    String string1 = \"\"\n"
+                   "    String string2 = \"2\"\n"
+                   "    Boolean bool1 = true\n"
+                   "    Boolean bool2 = true\n"
+                   "    class Myclass{}\n"
+                   "    class MyClass2(MyClass){}\n";
+    printf("Source:\n%s", script);
     lexer_t *lexer = lexer_new();
     nsecs_t time_start = nsecs();
     lexer_parse(lexer, script);
