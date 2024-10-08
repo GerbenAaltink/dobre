@@ -7,7 +7,7 @@
  - Lines per second: 170748.984375
  - Time; 10.78s
 
-### Features at the moment
+### Features 
  - declare class optionally classes to extend. These are two different notations.
  - prevent double declaration of classes.
  - prevent double declaration of classes to extend.
