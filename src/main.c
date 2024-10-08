@@ -7,10 +7,11 @@ int printf_dummy(const char *format, ...) {
     (void)format;
     return 0;
 }
-#ifdef printf
+#ifdef printf_a
 #undef printf
-#endif
 #define printf printf_dummy
+#endif
+
 
 #include "class.h"
 #include "lexer.h"
