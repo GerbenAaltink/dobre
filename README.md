@@ -2,21 +2,21 @@
 ![workflow](https://github.com/GerbenAaltink/dobre/actions/workflows/make-dobre-single-platform.yml/badge.svg)
 
 ## Usage
-
+### Syntax example
+```
+class A {}
+class B(A){
+    A a = 0
+}
+B *b = 1
+```
 ### Compliation
 Run `make build`
 ### Tests
 Run `make test`
 ### Run custom file
 Execute `./bin/dobre [file]`
-### Example source
-```
-class A {}
-class B(A){
-    A a = 0
-}
-B b = 1
-```
+
 
 
 ## Parser
