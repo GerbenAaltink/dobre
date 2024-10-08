@@ -228,8 +228,7 @@ void lexer_add_token(lexer_t *lexer, token_t *token) {
     lexer->count++;
 }
 
-lexer_t *lexer_parse(char *source) {
-    lexer_t *lexer = lexer_new();
+lexer_t *lexer_parse(lexer_t *lexer, char *source) {
     lexer->source = strdup(source);
     lexer->buffer = buffer_new(source, strlen(source));
     while (lexer->buffer->eof == false) {

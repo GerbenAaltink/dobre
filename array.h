@@ -26,10 +26,10 @@ array_t *array_new() {
     a->count = 0;
     a->size = 0;
     return a;
-};
+}
 
 void array_delete(array_t *a) {
-    for (int i = 0; i < a->count; i++) {
+    for (unsigned int i = 0; i < a->count; i++) {
         if (a->data[i]->free) {
             free(a->data[i]->value);
         }
@@ -60,7 +60,7 @@ void array_push_item(array_t *a, array_item_t *item) {
 bool array_string_exists(array_t *a, char *data) {
     if (data == NULL)
         return true;
-    for (int i = 0; i < a->count; i++) {
+    for (unsigned int i = 0; i < a->count; i++) {
         if (a->data[i]->type == ARRAY_ITEM_TYPE_STRING &&
             !strcmp((char *)a->data[i]->value, data)) {
             return true;
@@ -71,7 +71,7 @@ bool array_string_exists(array_t *a, char *data) {
 bool array_pointer_exists(array_t *a, void *value) {
     if (value == NULL)
         return true;
-    for (int i = 0; i < a->count; i++) {
+    for (unsigned int i = 0; i < a->count; i++) {
         if (a->data[i]->value == value) {
             return true;
         }
@@ -98,7 +98,7 @@ bool array_push_string(array_t *a, char *data) {
 }
 char *array_to_option_string(array_t *a) {
     buffer_t *buffer = buffer_new(NULL, 0);
-    for (int i = 0; i < a->count; i++) {
+    for (unsigned int i = 0; i < a->count; i++) {
         if (a->data[i]->type == ARRAY_ITEM_TYPE_STRING) {
             buffer_write(buffer, (char *)a->data[i]->value,
                          strlen((char *)a->data[i]->value));
@@ -108,4 +108,4 @@ char *array_to_option_string(array_t *a) {
     }
     return buffer_to_str(buffer);
 }
-#endif;
+#endif

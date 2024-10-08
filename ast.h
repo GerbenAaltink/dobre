@@ -177,7 +177,7 @@ ast_var_declaration_t *ast_var_declaration_new(char *type, char *identifier) {
 void ast_var_declaration_dump(ast_var_declaration_t *declaration) {
     printf("Declared variable %s with type %s", declaration->identifier,
            declaration->type);
-    for (int i = 0; i < declaration->stars; i++) {
+    for (unsigned int i = 0; i < declaration->stars; i++) {
         printf("*");
     }
     printf("\n");
@@ -212,12 +212,13 @@ ast_t *ast_closure_new() {
     ast_init(closure);
     return closure;
 }
+/*
 void ast_closure_delete(ast_t *closure) { return; }
+*/
 ast_t *ast_array_new() {
     ast_t *array = (ast_t *)malloc(sizeof(ast_t));
     ast_init(array);
     return array;
 }
-void ast_array_delete(ast_t *array) { return; }
 
 #endif

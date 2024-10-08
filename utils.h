@@ -4,7 +4,8 @@
 
 size_t get_line_count(char *filepath) {
     char *content = read_file_contents(filepath);
-    lexer_t *lexer = lexer_parse(content);
+    lexer_t *lexer = lexer_new();
+    lexer = lexer_parse(lexer, content);
     size_t result = lexer->lines;
     lexer_delete(lexer);
     free(content);

@@ -45,7 +45,7 @@ token_t *parser_next(parser_t *parser) {
 }
 void parser_raise(parser_t *parser, char *message, ...) {
     va_list args;
-    va_start(args, parser);
+    va_start(args, message);
     fprintf(stderr, "\033[31m");
     if (parser->current_token) {
         fprintf(stderr,
@@ -69,7 +69,7 @@ token_t *parser_expect(parser_t *parser, bool required, ...) {
         token_type = va_arg(args, int);
         if (token_type == -1) {
             break;
-        } else if (token->type == token_type) {
+        } else if ((int)token->type == token_type) {
             break;
         }
     }
@@ -167,7 +167,7 @@ ast_t *parse_closure(parser_t *parser) {
         ast_t *closure = ast_closure_new();
 
         token = parser_next(parser);
-        while (token->type != close_type) {
+        while ((int)token->type != close_type) {
             ast_t *statement = parse_class_definition(parser);
             if (statement) {
                 ast_add_child((ast_t *)closure, (ast_t *)statement);
@@ -225,12 +225,14 @@ ast_t *parse_class_definition(parser_t *parser) {
         }
         assert(definition->body);
         if (!array_push_string(parser->class_list, definition->name)) {
-            parser_raise(parser, "Class already defined: %s\n", definition->name);
+            parser_raise(parser, "Class already defined: %s\n",
+                         definition->name);
             exit(3);
         }
         return (ast_t *)definition;
     }
-    return parse_variable_definition(parser);;
+    return parse_variable_definition(parser);
+    ;
 }
 
 ast_t *parse(lexer_t *lexer) {
@@ -249,8 +251,8 @@ ast_t *parse(lexer_t *lexer) {
         if (result) {
             ast_delete(result);
         } else {
-            parser_expect(parser, 0,-1);
-            //exit(3);
+            parser_expect(parser, 0, -1);
+            // exit(3);
             token_dump(parser->current_token);
         }
     }
@@ -277,8 +279,8 @@ char *read_file_contents(char *filename) {
 
 void parse_file(char *filepath) {
     char *content = read_file_contents(filepath);
-    lexer_t *lexer = lexer_parse(content);
-
+    lexer_t *lexer = lexer_new(); 
+    lexer =lexer_parse(lexer,content);
     parse(lexer);
     // lexer_dump(lexer);
     print("%d lines and %d tokens\n", lexer->lines, lexer->count);

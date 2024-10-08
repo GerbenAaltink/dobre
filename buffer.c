@@ -4,7 +4,7 @@ int main() {
 
     buffer_t *buff = buffer_new(NULL, 0);
     buffer_write(buff, "hello", 5);
-    char c = 0;
+    
     assert(buffer_pop(buff) == EOF);
 
     buffer_reset(buff);

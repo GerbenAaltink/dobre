@@ -3,14 +3,19 @@
 #include <rlib.h>
 #define print rprintb
 
-int printf_dummy(const char *format, ...) {}
+int printf_dummy(const char *format, ...) {
+    (void)format;
+    return 0;
+}
+#ifdef printf
+#undef printf
+#endif
 #define printf printf_dummy
 
 #include "class.h"
 #include "lexer.h"
 #include "parser.h"
 #include "utils.h"
-
 
 int main(int argc, char *argv[]) {
     char *filepath = argc > 1 ? argv[1] : "../rlib/build/rlib.h";
@@ -22,7 +27,7 @@ int main(int argc, char *argv[]) {
     size_t line_count = get_line_count(filepath);
     print("Time: %f\n", (float)duration / 1000000000.0f);
     print("Lines per second: %f\n",
-           ((float)line_count) / (duration / 1000000000.0f));
+          ((float)line_count) / (duration / 1000000000.0f));
     print("Time; %s\n", format_time(duration));
     print("%s\n", rmalloc_stats());
     return 0;

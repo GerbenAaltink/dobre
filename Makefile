@@ -1,7 +1,7 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Ofast -Wpedantic
+CFLAGS = -Wall -Wextra -Ofast -Wpedantic -Werror
 
-all: test_buffer build run
+all: buffer lexer build run
 
 build: 
 	$(CC) $(CFLAGS) main.c -o dobre
@@ -15,7 +15,11 @@ format:
 valgrind: build
 	valgrind --leak-check=full ./dobre ./valgrind.dob
 
-test_buffer:
-	$(CC) $(CFLAGS) buffer.c -o buffer
-	./buffer
+buffer:
+	$(CC) $(CFLAGS) buffer.c -o bin/buffer
+	./bin/buffer
+
+lexer:
+	$(CC) $(CFLAGS) lexer.c -o bin/lexer
+	./bin/lexer
 
