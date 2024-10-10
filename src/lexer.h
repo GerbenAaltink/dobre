@@ -35,6 +35,7 @@ typedef struct token_t {
     token_type_t type;
     unsigned int line;
     unsigned int col;
+    unsigned int index;
 } token_t;
 
 void token_delete(token_t *token) {
@@ -83,6 +84,7 @@ token_t *token_next(lexer_t *lexer) {
     token_t *token = token_new();
     token->line = lexer->buffer->line;
     token->col = lexer->buffer->col;
+    token->index = lexer->buffer->pos;
     if (c == '{') {
         token->type = TOKEN_BRACE_OPEN;
         token->value = cdup(c);
@@ -201,6 +203,8 @@ token_t *token_next(lexer_t *lexer) {
         token->type = TOKEN_UNKNOWN;
         token->value = cdup(c);
     }
+    if(token->value)
+        token->length = strlen(token->value);
     return token;
 }
 

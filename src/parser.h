@@ -12,6 +12,72 @@ typedef struct parser_t {
     unsigned int token_index;
     array_t *class_list;
 } parser_t;
+
+unsigned int get_token_index(parser_t *parser, token_t *token) {
+    for(unsigned i = 0; i < parser->lexer->count; i++) {
+        if(parser->lexer->tokens[i] == token) {
+            return i;
+        }
+    }
+    return 0; 
+}
+
+char * parser_get_line_by_number(parser_t * parser, unsigned int line_number){
+    buffer_t * buffer = buffer_new(NULL, 0);
+    unsigned int first_char_match = 0;
+    unsigned int last_char_match = 0;
+    for(unsigned int i = 0; i < parser->lexer->count; i++) {
+        if(parser->lexer->tokens[i]->line == line_number) {
+            if(first_char_match == 0){
+                first_char_match = parser->lexer->tokens[i]->index;
+            }
+            last_char_match = parser->lexer->tokens[i]->index + parser->lexer->tokens[i]->length;
+        }else if(parser->lexer->tokens[i]->line > line_number){
+            break;
+        }
+    }
+    for(unsigned int i = first_char_match; i < last_char_match; i++) {
+        buffer_push(buffer, parser->lexer->source[i]);
+            
+    }
+    return buffer_to_str(buffer);
+}
+
+char * parser_get_source_lines(char * source, unsigned int start_line, unsigned int end_line){
+    buffer_t * buffer = buffer_new(NULL,0);
+    size_t source_length = strlen(source);
+    unsigned int current_line = 0;
+    
+    for (unsigned int i = 0; i < source_length; i++)
+    {
+        if(current_line >= start_line)
+        {
+            buffer_push(buffer, source[i]);
+          
+        }
+        if(source[i] == '\n'){
+            current_line++;
+        }
+        if(current_line > end_line && source[i] == '\n'){
+            break;
+        }
+        
+        
+        
+    }
+
+            
+    return buffer_to_str(buffer);
+}
+
+char * parser_get_source_context(parser_t * parser, token_t *token){
+    unsigned int preferred_line_count = 3;
+    unsigned int line_number_start = token->line - preferred_line_count > 0 ? token->line - preferred_line_count : 0;
+    char * source = parser_get_source_lines(parser->lexer->source, line_number_start, token->line);
+    return source;
+}
+
+
 token_t *parser_next(parser_t *parser);
 ast_t *parse_class_definition(parser_t *parser);
 parser_t *parser_new(lexer_t *lexer) {
@@ -21,7 +87,7 @@ parser_t *parser_new(lexer_t *lexer) {
     result->token_index = 0;
     result->class_list = array_new();
     result->current_token = lexer->count ? lexer->tokens[0] : NULL;
-    if(result->current_token && result->current_token->type < 10) {
+    while(result->current_token && result->current_token->type < 10) {
         parser_next(result);
     }
     return result;
@@ -52,11 +118,23 @@ void parser_raise(parser_t *parser, char *message, ...) {
     fprintf(stderr, "\033[31m");
     if (parser->current_token) {
         fprintf(stderr,
-                "Error at line %d, column %d: ", parser->current_token->line,
-                parser->current_token->col);
+                "\033[31mError at line %d, column %d: ", parser->current_token->line + 1,
+                parser->current_token->col + 1); 
+
+                vfprintf(stderr, message, args);
+                fprintf(stderr,"\033[0m");
+              char * parser_source_context =  parser_get_source_context(parser,parser->current_token);
+        fprintf(stderr,"%s",parser_source_context);
+        for(unsigned int i = 0; i < parser->current_token->col; i++){
+            fprintf(stderr," ");
+        }
+        fprintf(stderr, "\033[31m");
+        for(unsigned int i = parser->current_token->col; i < parser->current_token->col + parser->current_token->length; i++){
+            fprintf(stderr,"^");
+        }
+        fprintf(stderr,"\033[0m\n");
+        free(parser_source_context);
     }
-    vfprintf(stderr, message, args);
-    fprintf(stderr, "\033[0m");
     va_end(args);
 }
 token_t *parser_expect(parser_t *parser, bool required, ...) {
@@ -247,16 +325,19 @@ ast_t *parse(lexer_t *lexer) {
         ast_t *result = parse_class_definition(parser);
         token_after = parser->current_token;
         if (token_before && token_after == token_before) {
-            printf("Warning: no token change for: \n");
-            token_dump(token_before);
-            parser_next(parser);
+            parser_raise(parser, "Syntax error. Unexpected '%s'\n", token_before->value);
+            return NULL;
+            
+            //exit(0);
+            //token_dump(token_before);
+            //parser_next(parser);
         }
         if (result) {
             ast_delete(result);
-        } else {
-            parser_expect(parser, 0, -1);
+        } else if(parser->current_token) {
+           // parser_expect(parser, 0, -1);
             // exit(3);
-            token_dump(parser->current_token);
+            //token_dump(parser->current_token);
         }
     }
     parser_delete(parser);
