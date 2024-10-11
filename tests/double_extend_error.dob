@@ -1,0 +1,8 @@
+class Pony {
+
+}
+
+class NotACat(Pony,Pony){
+
+}
+
