@@ -4,8 +4,10 @@ SRC = ./src/
 
 all: buffer lexer build run
 
-test: buffer lexer build 
+test: buffer lexer parser build 
 	./bin/dobre ./tests/double_extend_error.dob
+	./bin/dobre ./tests/declare_unknown_type.dob | true
+
 
 build: ensure_bin 
 	$(CC) $(CFLAGS) $(SRC)main.c -o dobre
@@ -32,6 +34,11 @@ lexer: ensure_bin
 	$(CC) $(CFLAGS) $(SRC)lexer.c -o ./bin/lexer
 	./bin/lexer
 
-big: ensure_bin
+parser: ensure_bin
+	$(CC) $(CFLAGS) $(SRC)parser.c -o ./bin/parser
+	./bin/parser
+
+
+big.disabled: ensure_bin
 	$(CC) $(CFLAGS) $(SRC)big.c -o ./bin/big
 	./bin/big

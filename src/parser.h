@@ -185,21 +185,19 @@ ast_t *parse_variable_definition(parser_t *parser) {
 
     if (!parser_expect(parser, false, TOKEN_SYMBOL, -1))
         return NULL;
-    char *variable_identifiers = "int|char|bool|float|double|void|";
+    char *variable_identifiers = "int|char|bool|float|double|void";
     token_t *token = parser->current_token;
     char * matched_variable_identifier =
         string_match_option(token->value, variable_identifiers);
     if (!matched_variable_identifier && parser->class_list->count) {
         char *user_defined_classes_string =
             array_to_option_string(parser->class_list);
-        printf("User defined classes: %s\n", user_defined_classes_string);
         matched_variable_identifier =
             string_match_option(token->value, user_defined_classes_string);
         free(user_defined_classes_string);
     }
     if (!matched_variable_identifier) {
         parser_expect(parser, true, -1);
-        return NULL;
     }
 
     char *type = token->value;

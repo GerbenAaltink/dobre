@@ -1,7 +1,7 @@
 #ifndef ARRAY_H
 #define ARRAY_H
-#include "string.h"
 #include "buffer.h"
+#include "string.h"
 #include <stdlib.h>
 #include <string.h>
 typedef enum array_item_type_t {

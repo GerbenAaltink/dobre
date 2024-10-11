@@ -165,7 +165,15 @@ token_t *token_next(lexer_t *lexer) {
         buffer_pop(lexer->buffer);
         buffer_pop(lexer->buffer);
         buffer_t *buffer = buffer_new(NULL, 0);
-        while ((c = buffer_pop(lexer->buffer)) != '\n') {
+        while (true) {
+            c = buffer_pop(lexer->buffer);
+            if(c == '*')
+            {
+                if(buffer_peek(lexer->buffer) == '/'){
+                    buffer_pop(lexer->buffer);
+                    break;
+                }
+            }
             buffer_push(buffer, c);
         }
         token->value = buffer_to_str(buffer);

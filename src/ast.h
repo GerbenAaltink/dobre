@@ -1,7 +1,7 @@
 #ifndef AST_H
 #define AST_H
-#include "string.h"
 #include "array.h"
+#include "string.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,7 +80,7 @@ void ast_delete(ast_t *node) {
         ast_var_declaration_delete((ast_var_declaration_t *)child);
     else if (child->type == AST_ASSIGNMENT)
         ast_assignment_delete((ast_assignment_t *)child);
-    else 
+    else
         printf("NO DELETION\n");
     for (unsigned int i = 0; i < child->children_count; i++)
         ast_delete(child->children[i]);
@@ -142,7 +142,7 @@ ast_class_definition_t *ast_class_definition_new(char *name) {
     return result;
 }
 void ast_class_definition_delete(ast_class_definition_t *definition) {
-    printf("Free class %s", definition->name);
+    printf("Free class %s\n", definition->name);
     if (definition->extends) {
         array_delete(definition->extends);
     }
@@ -188,7 +188,7 @@ void ast_var_declaration_dump(ast_var_declaration_t *declaration) {
     printf("\n");
 }
 void ast_var_declaration_delete(ast_var_declaration_t *declaration) {
-    printf("Free %s %s.\n",declaration->type,declaration->identifier);
+    printf("Free %s %s.\n", declaration->type, declaration->identifier);
     if (declaration->type)
         free(declaration->type);
     if (declaration->identifier)
@@ -209,8 +209,8 @@ ast_assignment_t *ast_assignment_new(char *identifier, ast_value_t *value) {
     return result;
 }
 void ast_assignment_delete(ast_assignment_t *assignment) {
-    printf("Free assignment %s.\n",assignment->identifier);
-    
+    printf("Free assignment %s.\n", assignment->identifier);
+
     free(assignment->identifier);
     ast_value_delete(assignment->value);
 }
