@@ -1,5 +1,7 @@
 #ifndef LEXER_H
 #define LEXER_H
+
+#include "string.h"
 #include "buffer.h"
 #include <ctype.h>
 #include <stdbool.h>
@@ -168,7 +170,6 @@ token_t *token_next(lexer_t *lexer) {
         }
         token->value = buffer_to_str(buffer);
         token->type = TOKEN_MULTILINE_COMMENT;
-        token->value = cdup(c);
     } else if (c == '=') {
         token->type = TOKEN_IS;
         token->value = cdup(c);
@@ -250,7 +251,7 @@ lexer_t *lexer_parse(lexer_t *lexer, char *source) {
         lexer_add_token(lexer, token);
     }
     if(lexer->count)
-        lexer->lines = lexer->tokens[lexer->count - 1]->line;
+        lexer->lines = lexer->tokens[lexer->count - 1]->line + 1;
     return lexer;
 }
 

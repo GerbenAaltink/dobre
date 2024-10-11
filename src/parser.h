@@ -47,7 +47,6 @@ char * parser_get_source_lines(char * source, unsigned int start_line, unsigned 
     buffer_t * buffer = buffer_new(NULL,0);
     size_t source_length = strlen(source);
     unsigned int current_line = 0;
-    
     for (unsigned int i = 0; i < source_length; i++)
     {
         if(current_line >= start_line)
@@ -71,8 +70,9 @@ char * parser_get_source_lines(char * source, unsigned int start_line, unsigned 
 }
 
 char * parser_get_source_context(parser_t * parser, token_t *token){
-    unsigned int preferred_line_count = 3;
-    unsigned int line_number_start = token->line - preferred_line_count > 0 ? token->line - preferred_line_count : 0;
+     //int preferred_line_count = 3;
+     int line_number_start = token->line; //(((int)token->line - preferred_line_count) > 0) ? token->line - preferred_line_count: 0;
+    
     char * source = parser_get_source_lines(parser->lexer->source, line_number_start, token->line);
     return source;
 }
@@ -152,6 +152,8 @@ token_t *parser_expect(parser_t *parser, bool required, ...) {
             break;
         } else if ((int)token->type == token_type) {
             break;
+        } else if (token_type == TOKEN_UNKNOWN) {
+            break;
         }
     }
     va_end(args);
@@ -179,11 +181,13 @@ ast_t *parse_assignment(parser_t *parser) {
 }
 
 ast_t *parse_variable_definition(parser_t *parser) {
+   
+
     if (!parser_expect(parser, false, TOKEN_SYMBOL, -1))
         return NULL;
     char *variable_identifiers = "int|char|bool|float|double|void|";
     token_t *token = parser->current_token;
-    bool matched_variable_identifier =
+    char * matched_variable_identifier =
         string_match_option(token->value, variable_identifiers);
     if (!matched_variable_identifier && parser->class_list->count) {
         char *user_defined_classes_string =
@@ -193,7 +197,7 @@ ast_t *parse_variable_definition(parser_t *parser) {
             string_match_option(token->value, user_defined_classes_string);
         free(user_defined_classes_string);
     }
-    if (matched_variable_identifier == false) {
+    if (!matched_variable_identifier) {
         parser_expect(parser, true, -1);
         return NULL;
     }
@@ -225,41 +229,49 @@ ast_t *parse_variable_definition(parser_t *parser) {
             token_type = "symbol";
         }
         ast_value_t *value = ast_value_new(token->value, token_type);
+        
         ast_assignment_t *assignment = ast_assignment_new(identifier, value);
+        //ast_delete((ast_t *)assignment);
+
         ast_add_child((ast_t *)definition, (ast_t *)assignment);
+
         parser_next(parser);
     }
+
     return (ast_t *)definition;
     // return  parse_remainder(parser);
 }
 
-ast_t *parse_closure(parser_t *parser) {
+ast_t *parse_closure(parser_t *parser,token_type_t open_type) {
 
     token_t *token = parser->current_token;
-    parser_expect(parser, true, TOKEN_PAREN_OPEN, TOKEN_BRACE_OPEN, -1);
-    int open_type = token->type;
+    parser_expect(parser, true, open_type, -1);
     int close_type = 0;
     if (open_type == TOKEN_PAREN_OPEN) {
         close_type = TOKEN_PAREN_CLOSE;
     } else if (open_type == TOKEN_BRACE_OPEN) {
         close_type = TOKEN_BRACE_CLOSED;
+    }else if(open_type == TOKEN_UNKNOWN){
+        close_type = TOKEN_UNKNOWN;
     }
-    if (token->type == TOKEN_BRACE_OPEN || token->type == TOKEN_PAREN_OPEN) {
+    
         ast_t *closure = ast_closure_new();
-
+        if(open_type != TOKEN_UNKNOWN)
         token = parser_next(parser);
-        while ((int)token->type != close_type) {
+        while (token && (int)token->type != close_type && (int)token->type > 10) {
+            token_t * token_start = parser->current_token;
             ast_t *statement = parse_class_definition(parser);
             if (statement) {
                 ast_add_child((ast_t *)closure, (ast_t *)statement);
             }
             token = parser->current_token;
+            if(token == token_start)
+                break;
         }
         parser_expect(parser, true, close_type, -1);
         parser_next(parser);
         return closure;
-    }
-    return NULL;
+    
 }
 
 array_t *parse_class_extends(parser_t *parser,
@@ -297,14 +309,13 @@ ast_t *parse_class_definition(parser_t *parser) {
         if (token->type == TOKEN_PAREN_OPEN) {
             definition->extends = parse_class_extends(parser, definition);
             assert(definition->extends);
-            parser_expect(parser, true, TOKEN_BRACE_OPEN - 1);
-            definition->body = parse_closure(parser);
+            parser_expect(parser, true, TOKEN_BRACE_OPEN ,-1);
+            definition->body = parse_closure(parser,TOKEN_BRACE_OPEN);
         } else {
-            printf("ZZZ:%s\n", parser->current_token->value);
-
-            definition->body = parse_closure(parser);
+            definition->body = parse_closure(parser,TOKEN_BRACE_OPEN);
         }
         assert(definition->body);
+
         if (!array_push_string(parser->class_list, definition->name)) {
             parser_raise(parser, "Class already defined: %s\n",
                          definition->name);
@@ -322,12 +333,12 @@ ast_t *parse(lexer_t *lexer) {
     token_t *token_after = NULL;
     while (parser->current_token) {
         token_before = parser->current_token;
-        ast_t *result = parse_class_definition(parser);
+        ast_t *result = parse_closure(parser, TOKEN_UNKNOWN);
         token_after = parser->current_token;
         if (token_before && token_after == token_before) {
             parser_raise(parser, "Syntax error. Unexpected '%s'\n", token_before->value);
             return NULL;
-            
+
             //exit(0);
             //token_dump(token_before);
             //parser_next(parser);

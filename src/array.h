@@ -1,5 +1,6 @@
 #ifndef ARRAY_H
 #define ARRAY_H
+#include "string.h"
 #include "buffer.h"
 #include <stdlib.h>
 #include <string.h>

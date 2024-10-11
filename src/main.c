@@ -1,4 +1,4 @@
-#define RMALLOC_OVERRIDE 1
+#define RMALLOC_OVERRIDE 0
 #define RMALLOC_DEBUG 1
 #include <rlib.h>
 #define print rprintb
@@ -19,7 +19,7 @@ int printf_dummy(const char *format, ...) {
 #include "utils.h"
 
 int main(int argc, char *argv[]) {
-    char *filepath = argc > 1 ? argv[1] : "../rlib/build/rlib.h";
+    char *filepath = argc > 1 ? argv[1] : "../scripts/valgrind.dob";
     nsecs_t time_start = nsecs();
     parse_file(filepath);
     nsecs_t time_end = nsecs();
