@@ -13,6 +13,10 @@ typedef struct parser_t {
     array_t *class_list;
 } parser_t;
 
+ast_t *parse_closure(parser_t *parser, token_type_t type);
+token_t *parser_next(parser_t *parser);
+ast_t *parse_class_definition(parser_t *parser);
+
 unsigned int get_token_index(parser_t *parser, token_t *token) {
     for(unsigned i = 0; i < parser->lexer->count; i++) {
         if(parser->lexer->tokens[i] == token) {
@@ -78,8 +82,6 @@ char * parser_get_source_context(parser_t * parser, token_t *token){
 }
 
 
-token_t *parser_next(parser_t *parser);
-ast_t *parse_class_definition(parser_t *parser);
 parser_t *parser_new(lexer_t *lexer) {
     parser_t *result = (parser_t *)malloc(sizeof(parser_t));
     result->lexer = lexer;
@@ -180,11 +182,23 @@ ast_t *parse_assignment(parser_t *parser) {
     return parse_remainder(parser);
 }
 
+
+ast_t *parse_while(parser_t *parser){
+    if(!parser_expect(parser,false,TOKEN_WHILE,-1)){
+        return NULL;
+    }
+    parser_next(parser);
+    ast_t * statement = parse_closure(parser,TOKEN_PAREN_OPEN);
+    ast_t * closure = parse_closure(parser,TOKEN_BRACE_OPEN);
+    ast_while_t * ast_while = ast_while_new(statement, closure);
+    return (ast_t *)ast_while;
+}
+
 ast_t *parse_variable_definition(parser_t *parser) {
    
 
     if (!parser_expect(parser, false, TOKEN_SYMBOL, -1))
-        return NULL;
+        return parse_while(parser);
     char *variable_identifiers = "int|char|bool|float|double|void";
     token_t *token = parser->current_token;
     char * matched_variable_identifier =

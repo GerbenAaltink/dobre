@@ -20,7 +20,7 @@ typedef enum token_type_t {
     TOKEN_PAREN_OPEN = 31,
     TOKEN_PAREN_CLOSE = 32,
     TOKEN_BRACE_OPEN = 33,
-    TOKEN_BRACE_CLOSED = 44,
+    TOKEN_BRACE_CLOSED = 34,
     TOKEN_COMMENT = 2,
     TOKEN_MULTILINE_COMMENT = 3,
     TOKEN_IS = 60,
@@ -28,7 +28,8 @@ typedef enum token_type_t {
     TOKEN_WHITESPACE = 1,
     TOKEN_UNKNOWN = 0,
     TOKEN_STAR = 62,
-    TOKEN_MACRO = 4
+    TOKEN_MACRO = 4,
+    TOKEN_WHILE = 50
 } token_type_t;
 
 typedef struct token_t {
@@ -118,6 +119,9 @@ token_t *token_next(lexer_t *lexer) {
         }
         token->value = buffer_to_str(buffer);
         token->type = TOKEN_SYMBOL;
+        if(!strcmp(token->value,"while")){
+            token->type = TOKEN_WHILE;
+        }
     } else if (c == '"') {
         token->type = TOKEN_STRING;
         buffer_t *buffer = buffer_new(NULL, 0);
