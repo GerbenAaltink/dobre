@@ -5,9 +5,9 @@ SRC = ./src/
 all: buffer lexer build run
 
 test: buffer lexer parser build 
-	./bin/dobre ./tests/double_extend_error.dob
-	./bin/dobre ./tests/declare_unknown_type.dob | true
-	./bin/dobre ./tests/while.dob
+	./bin/dobre ./tests/parser/double_extend_error.dob
+	./bin/dobre ./tests/parser/declare_unknown_type.dob | true
+	./bin/dobre ./tests/parser/while.dob
 
 build: ensure_bin 
 	$(CC) $(CFLAGS) $(SRC)main.c -o dobre
