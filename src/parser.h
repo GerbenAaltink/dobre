@@ -183,9 +183,28 @@ ast_t *parse_assignment(parser_t *parser) {
 }
 
 
+ast_value_t * parse_value(parser_t *parser){
+    token_t * token = parser_expect(parser,true,TOKEN_STRING,TOKEN_NUMBER,TOKEN_BOOLEAN,TOKEN_SYMBOL,TOKEN_PAREN_OPEN,-1);
+    if(token->type == TOKEN_PAREN_OPEN){
+        return (ast_value_t *)parse_closure(parser,TOKEN_PAREN_OPEN);
+    }
+    char *token_type = NULL;
+    if (token->type == TOKEN_NUMBER) {
+        token_type = "number";
+    } else if (token->type == TOKEN_STRING) {
+        token_type = "string";
+    } else if (token->type == TOKEN_BOOLEAN) {
+        token_type = "boolean";
+    } else if (token->type == TOKEN_BOOLEAN) {
+        token_type = "symbol";
+    }
+    parser_next(parser);
+    return ast_value_new(token->value,token_type);
+}
+
 ast_t *parse_while(parser_t *parser){
     if(!parser_expect(parser,false,TOKEN_WHILE,-1)){
-        return NULL;
+        return (ast_t *)parse_value(parser);
     }
     parser_next(parser);
     ast_t * statement = parse_closure(parser,TOKEN_PAREN_OPEN);
@@ -229,29 +248,12 @@ ast_t *parse_variable_definition(parser_t *parser) {
     definition->stars = stars;
     token = parser_next(parser);
     if (token->type == TOKEN_IS) {
-        token = parser_next(parser);
-        char *token_type = NULL;
-        if (token->type == TOKEN_NUMBER) {
-            token_type = "number";
-        } else if (token->type == TOKEN_STRING) {
-            token_type = "string";
-        } else if (token->type == TOKEN_BOOLEAN) {
-            token_type = "boolean";
-        } else if (token->type == TOKEN_BOOLEAN) {
-            token_type = "symbol";
-        }
-        ast_value_t *value = ast_value_new(token->value, token_type);
-        
-        ast_assignment_t *assignment = ast_assignment_new(identifier, value);
-        //ast_delete((ast_t *)assignment);
-
-        ast_add_child((ast_t *)definition, (ast_t *)assignment);
-
         parser_next(parser);
+        ast_value_t *value = parse_value(parser);
+        ast_assignment_t *assignment = ast_assignment_new(identifier, value);
+        ast_add_child((ast_t *)definition, (ast_t *)assignment);
     }
-
     return (ast_t *)definition;
-    // return  parse_remainder(parser);
 }
 
 ast_t *parse_closure(parser_t *parser,token_type_t open_type) {

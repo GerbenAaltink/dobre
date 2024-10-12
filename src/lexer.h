@@ -194,7 +194,7 @@ token_t *token_next(lexer_t *lexer) {
     } else if (c == '.') {
         token->type = TOKEN_DOT;
         token->value = cdup(c);
-    } else if (isspace(c)) {
+    } else if (isspace(c) || c == '\n') {
         token->type = TOKEN_WHITESPACE;
         token->value = cdup(c);
     } else if (c == '*') {
