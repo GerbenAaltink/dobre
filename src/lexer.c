@@ -31,7 +31,7 @@ int main() {
     printf("\n");
     if (rmalloc_count) {
         rprintr("MEMORY ERROR\n");
-        return 0;//1;
+        return 0; // 1;
     }
     return 0;
 }

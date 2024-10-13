@@ -18,69 +18,65 @@ token_t *parser_next(parser_t *parser);
 ast_t *parse_class_definition(parser_t *parser);
 
 unsigned int get_token_index(parser_t *parser, token_t *token) {
-    for(unsigned i = 0; i < parser->lexer->count; i++) {
-        if(parser->lexer->tokens[i] == token) {
+    for (unsigned i = 0; i < parser->lexer->count; i++) {
+        if (parser->lexer->tokens[i] == token) {
             return i;
         }
     }
-    return 0; 
+    return 0;
 }
 
-char * parser_get_line_by_number(parser_t * parser, unsigned int line_number){
-    buffer_t * buffer = buffer_new(NULL, 0);
+char *parser_get_line_by_number(parser_t *parser, unsigned int line_number) {
+    buffer_t *buffer = buffer_new(NULL, 0);
     unsigned int first_char_match = 0;
     unsigned int last_char_match = 0;
-    for(unsigned int i = 0; i < parser->lexer->count; i++) {
-        if(parser->lexer->tokens[i]->line == line_number) {
-            if(first_char_match == 0){
+    for (unsigned int i = 0; i < parser->lexer->count; i++) {
+        if (parser->lexer->tokens[i]->line == line_number) {
+            if (first_char_match == 0) {
                 first_char_match = parser->lexer->tokens[i]->index;
             }
-            last_char_match = parser->lexer->tokens[i]->index + parser->lexer->tokens[i]->length;
-        }else if(parser->lexer->tokens[i]->line > line_number){
+            last_char_match = parser->lexer->tokens[i]->index +
+                              parser->lexer->tokens[i]->length;
+        } else if (parser->lexer->tokens[i]->line > line_number) {
             break;
         }
     }
-    for(unsigned int i = first_char_match; i < last_char_match; i++) {
+    for (unsigned int i = first_char_match; i < last_char_match; i++) {
         buffer_push(buffer, parser->lexer->source[i]);
-            
     }
     return buffer_to_str(buffer);
 }
 
-char * parser_get_source_lines(char * source, unsigned int start_line, unsigned int end_line){
-    buffer_t * buffer = buffer_new(NULL,0);
+char *parser_get_source_lines(char *source, unsigned int start_line,
+                              unsigned int end_line) {
+    buffer_t *buffer = buffer_new(NULL, 0);
     size_t source_length = strlen(source);
     unsigned int current_line = 0;
-    for (unsigned int i = 0; i < source_length; i++)
-    {
-        if(current_line >= start_line)
-        {
+    for (unsigned int i = 0; i < source_length; i++) {
+        if (current_line >= start_line) {
             buffer_push(buffer, source[i]);
-          
         }
-        if(source[i] == '\n'){
+        if (source[i] == '\n') {
             current_line++;
         }
-        if(current_line > end_line && source[i] == '\n'){
+        if (current_line > end_line && source[i] == '\n') {
             break;
         }
-        
-        
-        
     }
 
-            
     return buffer_to_str(buffer);
 }
 
-char * parser_get_source_context(parser_t * parser, token_t *token){
-     //int preferred_line_count = 3;
-     int line_number_start = token->line; //(((int)token->line - preferred_line_count) > 0) ? token->line - preferred_line_count: 0;
-    
-    char * source = parser_get_source_lines(parser->lexer->source, line_number_start, token->line);
+char *parser_get_source_context(parser_t *parser, token_t *token) {
+    // int preferred_line_count = 3;
+    int line_number_start =
+        token->line; //(((int)token->line - preferred_line_count) > 0) ?
+                     //token->line - preferred_line_count: 0;
+
+    char *source = parser_get_source_lines(parser->lexer->source,
+                                           line_number_start, token->line);
     return source;
 }
-
 
 parser_t *parser_new(lexer_t *lexer) {
     parser_t *result = (parser_t *)malloc(sizeof(parser_t));
@@ -89,7 +85,7 @@ parser_t *parser_new(lexer_t *lexer) {
     result->token_index = 0;
     result->class_list = array_new();
     result->current_token = lexer->count ? lexer->tokens[0] : NULL;
-    while(result->current_token && result->current_token->type < 10) {
+    while (result->current_token && result->current_token->type < 10) {
         parser_next(result);
     }
     return result;
@@ -119,22 +115,25 @@ void parser_raise(parser_t *parser, char *message, ...) {
     va_start(args, message);
     fprintf(stderr, "\033[31m");
     if (parser->current_token) {
-        fprintf(stderr,
-                "\033[31mError at line %d, column %d: ", parser->current_token->line + 1,
-                parser->current_token->col + 1); 
+        fprintf(stderr, "\033[31mError at line %d, column %d: ",
+                parser->current_token->line + 1,
+                parser->current_token->col + 1);
 
-                vfprintf(stderr, message, args);
-                fprintf(stderr,"\033[0m");
-              char * parser_source_context =  parser_get_source_context(parser,parser->current_token);
-        fprintf(stderr,"%s",parser_source_context);
-        for(unsigned int i = 0; i < parser->current_token->col; i++){
-            fprintf(stderr," ");
+        vfprintf(stderr, message, args);
+        fprintf(stderr, "\033[0m");
+        char *parser_source_context =
+            parser_get_source_context(parser, parser->current_token);
+        fprintf(stderr, "%s", parser_source_context);
+        for (unsigned int i = 0; i < parser->current_token->col; i++) {
+            fprintf(stderr, " ");
         }
         fprintf(stderr, "\033[31m");
-        for(unsigned int i = parser->current_token->col; i < parser->current_token->col + parser->current_token->length; i++){
-            fprintf(stderr,"^");
+        for (unsigned int i = parser->current_token->col;
+             i < parser->current_token->col + parser->current_token->length;
+             i++) {
+            fprintf(stderr, "^");
         }
-        fprintf(stderr,"\033[0m\n");
+        fprintf(stderr, "\033[0m\n");
         free(parser_source_context);
     }
     va_end(args);
@@ -182,11 +181,12 @@ ast_t *parse_assignment(parser_t *parser) {
     return parse_remainder(parser);
 }
 
-
-ast_value_t * parse_value(parser_t *parser){
-    token_t * token = parser_expect(parser,true,TOKEN_STRING,TOKEN_NUMBER,TOKEN_BOOLEAN,TOKEN_SYMBOL,TOKEN_PAREN_OPEN,-1);
-    if(token->type == TOKEN_PAREN_OPEN){
-        return (ast_value_t *)parse_closure(parser,TOKEN_PAREN_OPEN);
+ast_value_t *parse_value(parser_t *parser) {
+    token_t *token =
+        parser_expect(parser, true, TOKEN_STRING, TOKEN_NUMBER, TOKEN_BOOLEAN,
+                      TOKEN_SYMBOL, TOKEN_PAREN_OPEN, -1);
+    if (token->type == TOKEN_PAREN_OPEN) {
+        return (ast_value_t *)parse_closure(parser, TOKEN_PAREN_OPEN);
     }
     char *token_type = NULL;
     if (token->type == TOKEN_NUMBER) {
@@ -199,28 +199,27 @@ ast_value_t * parse_value(parser_t *parser){
         token_type = "symbol";
     }
     parser_next(parser);
-    return ast_value_new(token->value,token_type);
+    return ast_value_new(token->value, token_type);
 }
 
-ast_t *parse_while(parser_t *parser){
-    if(!parser_expect(parser,false,TOKEN_WHILE,-1)){
+ast_t *parse_while(parser_t *parser) {
+    if (!parser_expect(parser, false, TOKEN_WHILE, -1)) {
         return (ast_t *)parse_value(parser);
     }
     parser_next(parser);
-    ast_t * statement = parse_closure(parser,TOKEN_PAREN_OPEN);
-    ast_t * closure = parse_closure(parser,TOKEN_BRACE_OPEN);
-    ast_while_t * ast_while = ast_while_new(statement, closure);
+    ast_t *statement = parse_closure(parser, TOKEN_PAREN_OPEN);
+    ast_t *closure = parse_closure(parser, TOKEN_BRACE_OPEN);
+    ast_while_t *ast_while = ast_while_new(statement, closure);
     return (ast_t *)ast_while;
 }
 
 ast_t *parse_variable_definition(parser_t *parser) {
-   
 
     if (!parser_expect(parser, false, TOKEN_SYMBOL, -1))
         return parse_while(parser);
     char *variable_identifiers = "int|char|bool|float|double|void";
     token_t *token = parser->current_token;
-    char * matched_variable_identifier =
+    char *matched_variable_identifier =
         string_match_option(token->value, variable_identifiers);
     if (!matched_variable_identifier && parser->class_list->count) {
         char *user_defined_classes_string =
@@ -256,7 +255,7 @@ ast_t *parse_variable_definition(parser_t *parser) {
     return (ast_t *)definition;
 }
 
-ast_t *parse_closure(parser_t *parser,token_type_t open_type) {
+ast_t *parse_closure(parser_t *parser, token_type_t open_type) {
 
     token_t *token = parser->current_token;
     parser_expect(parser, true, open_type, -1);
@@ -265,27 +264,26 @@ ast_t *parse_closure(parser_t *parser,token_type_t open_type) {
         close_type = TOKEN_PAREN_CLOSE;
     } else if (open_type == TOKEN_BRACE_OPEN) {
         close_type = TOKEN_BRACE_CLOSED;
-    }else if(open_type == TOKEN_UNKNOWN){
+    } else if (open_type == TOKEN_UNKNOWN) {
         close_type = TOKEN_UNKNOWN;
     }
-    
-        ast_t *closure = ast_closure_new();
-        if(open_type != TOKEN_UNKNOWN)
+
+    ast_t *closure = ast_closure_new();
+    if (open_type != TOKEN_UNKNOWN)
         token = parser_next(parser);
-        while (token && (int)token->type != close_type && (int)token->type > 10) {
-            token_t * token_start = parser->current_token;
-            ast_t *statement = parse_class_definition(parser);
-            if (statement) {
-                ast_add_child((ast_t *)closure, (ast_t *)statement);
-            }
-            token = parser->current_token;
-            if(token == token_start)
-                break;
+    while (token && (int)token->type != close_type && (int)token->type > 10) {
+        token_t *token_start = parser->current_token;
+        ast_t *statement = parse_class_definition(parser);
+        if (statement) {
+            ast_add_child((ast_t *)closure, (ast_t *)statement);
         }
-        parser_expect(parser, true, close_type, -1);
-        parser_next(parser);
-        return closure;
-    
+        token = parser->current_token;
+        if (token == token_start)
+            break;
+    }
+    parser_expect(parser, true, close_type, -1);
+    parser_next(parser);
+    return closure;
 }
 
 array_t *parse_class_extends(parser_t *parser,
@@ -323,10 +321,10 @@ ast_t *parse_class_definition(parser_t *parser) {
         if (token->type == TOKEN_PAREN_OPEN) {
             definition->extends = parse_class_extends(parser, definition);
             assert(definition->extends);
-            parser_expect(parser, true, TOKEN_BRACE_OPEN ,-1);
-            definition->body = parse_closure(parser,TOKEN_BRACE_OPEN);
+            parser_expect(parser, true, TOKEN_BRACE_OPEN, -1);
+            definition->body = parse_closure(parser, TOKEN_BRACE_OPEN);
         } else {
-            definition->body = parse_closure(parser,TOKEN_BRACE_OPEN);
+            definition->body = parse_closure(parser, TOKEN_BRACE_OPEN);
         }
         assert(definition->body);
 
@@ -350,19 +348,20 @@ ast_t *parse(lexer_t *lexer) {
         ast_t *result = parse_closure(parser, TOKEN_UNKNOWN);
         token_after = parser->current_token;
         if (token_before && token_after == token_before) {
-            parser_raise(parser, "Syntax error. Unexpected '%s'\n", token_before->value);
+            parser_raise(parser, "Syntax error. Unexpected '%s'\n",
+                         token_before->value);
             return NULL;
 
-            //exit(0);
-            //token_dump(token_before);
-            //parser_next(parser);
+            // exit(0);
+            // token_dump(token_before);
+            // parser_next(parser);
         }
         if (result) {
             ast_delete(result);
-        } else if(parser->current_token) {
-           // parser_expect(parser, 0, -1);
+        } else if (parser->current_token) {
+            // parser_expect(parser, 0, -1);
             // exit(3);
-            //token_dump(parser->current_token);
+            // token_dump(parser->current_token);
         }
     }
     parser_delete(parser);
@@ -386,8 +385,8 @@ char *read_file_contents(char *filename) {
     return buffer;
 }
 
-void parse_string(char * script){
-     lexer_t *lexer = lexer_new();
+void parse_string(char *script) {
+    lexer_t *lexer = lexer_new();
     lexer = lexer_parse(lexer, script);
     parse(lexer);
     lexer_delete(lexer);

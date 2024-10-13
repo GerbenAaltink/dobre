@@ -1,8 +1,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "string.h"
 #include "buffer.h"
+#include "string.h"
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -119,7 +119,7 @@ token_t *token_next(lexer_t *lexer) {
         }
         token->value = buffer_to_str(buffer);
         token->type = TOKEN_SYMBOL;
-        if(!strcmp(token->value,"while")){
+        if (!strcmp(token->value, "while")) {
             token->type = TOKEN_WHILE;
         }
     } else if (c == '"') {
@@ -171,9 +171,8 @@ token_t *token_next(lexer_t *lexer) {
         buffer_t *buffer = buffer_new(NULL, 0);
         while (true) {
             c = buffer_pop(lexer->buffer);
-            if(c == '*')
-            {
-                if(buffer_peek(lexer->buffer) == '/'){
+            if (c == '*') {
+                if (buffer_peek(lexer->buffer) == '/') {
                     buffer_pop(lexer->buffer);
                     break;
                 }
@@ -216,7 +215,7 @@ token_t *token_next(lexer_t *lexer) {
         token->type = TOKEN_UNKNOWN;
         token->value = cdup(c);
     }
-    if(token->value)
+    if (token->value)
         token->length = strlen(token->value);
     return token;
 }
@@ -262,7 +261,7 @@ lexer_t *lexer_parse(lexer_t *lexer, char *source) {
     while (lexer->buffer->eof == false && (token = token_next(lexer))) {
         lexer_add_token(lexer, token);
     }
-    if(lexer->count)
+    if (lexer->count)
         lexer->lines = lexer->tokens[lexer->count - 1]->line + 1;
     return lexer;
 }

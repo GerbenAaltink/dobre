@@ -112,7 +112,7 @@ char buffer_pop(buffer_t *buff) {
     if (buff->pos && *(buff->ptr - 1) == '\n') {
         buff->line++;
         buff->col = 0;
-    } else if(buff->pos) {
+    } else if (buff->pos) {
         buff->col++;
     }
 
@@ -164,21 +164,18 @@ char *string_match_option(char *buff, char *options) {
     char *memory = options_cpy;
     size_t buff_length = strlen(buff);
 
-    while ((option = strtok(option == NULL ? memory : NULL, "|")) !=
-           NULL) {
-
+    while ((option = strtok(option == NULL ? memory : NULL, "|")) != NULL) {
 
         bool reverse = option[0] == '^';
 
         if (reverse) {
 
             option++;
-
         }
 
         size_t option_length = strlen(option);
         if (option_length > buff_length) {
-            
+
             continue;
         }
 
@@ -197,7 +194,7 @@ char *string_match_option(char *buff, char *options) {
         }
 
         if (!ustrncmp(buff, (char *)option, option_length)) {
-         
+
             if (reverse) {
                 return NULL;
             }

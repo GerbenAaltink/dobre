@@ -29,8 +29,6 @@ typedef struct ast_value_t {
     char *type;
 } ast_value_t;
 
-
-
 typedef struct ast_class_definition_t {
     ast_t node;
     char *name;
@@ -53,8 +51,8 @@ typedef struct ast_assignment_t {
 
 typedef struct ast_while_t {
     ast_t node;
-    ast_t * statement;
-    ast_t * closure;
+    ast_t *statement;
+    ast_t *closure;
 } ast_while_t;
 
 ast_t *ast_new(char *type);
@@ -90,10 +88,9 @@ void ast_delete(ast_t *node) {
         ast_var_declaration_delete((ast_var_declaration_t *)child);
     else if (child->type == AST_ASSIGNMENT)
         ast_assignment_delete((ast_assignment_t *)child);
-    else if(child->type == AST_WHILE){
+    else if (child->type == AST_WHILE) {
         ast_while_delete((ast_while_t *)child);
-    }
-    else
+    } else
         printf("NO DELETION\n");
     for (unsigned int i = 0; i < child->children_count; i++)
         ast_delete(child->children[i]);
@@ -118,7 +115,7 @@ void ast_value_dump(ast_value_t *value);
 void ast_class_definition_dump(ast_class_definition_t *definition);
 void ast_var_declaration_dump(ast_var_declaration_t *declaration);
 void ast_assignment_dump(ast_assignment_t *assignment);
-void ast_while_dump(ast_while_t * while_fn);
+void ast_while_dump(ast_while_t *while_fn);
 
 void ast_dump(ast_t *node) {
     if (!node)
@@ -131,7 +128,7 @@ void ast_dump(ast_t *node) {
         ast_var_declaration_dump((ast_var_declaration_t *)node);
     } else if (node->type == AST_ASSIGNMENT) {
         ast_assignment_dump((ast_assignment_t *)node);
-    } else if(node->type == AST_WHILE){
+    } else if (node->type == AST_WHILE) {
         ast_while_dump((ast_while_t *)node);
     }
 }
@@ -245,8 +242,6 @@ ast_t *ast_array_new() {
     return array;
 }
 
-
-
 void ast_while_dump(ast_while_t *while_fn) {
     printf("While (\n");
     ast_dump(while_fn->statement);
@@ -254,9 +249,8 @@ void ast_while_dump(ast_while_t *while_fn) {
     ast_dump(while_fn->closure);
     printf("}\n");
 }
-ast_while_t *ast_while_new(ast_t * statement, ast_t *closure) {
-    ast_while_t *result =
-        (ast_while_t *)malloc(sizeof(ast_while_t));
+ast_while_t *ast_while_new(ast_t *statement, ast_t *closure) {
+    ast_while_t *result = (ast_while_t *)malloc(sizeof(ast_while_t));
     ast_init(&result->node);
 
     result->node.type = AST_WHILE;

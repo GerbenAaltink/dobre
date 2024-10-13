@@ -12,18 +12,15 @@ int printf_dummy(const char *format, ...) {
 
 #include "parser.h"
 
-
 unsigned int parse_only(char *script) {
-    lexer_t * lexer = lexer_new();
-     lexer = lexer_parse(lexer, script);
+    lexer_t *lexer = lexer_new();
+    lexer = lexer_parse(lexer, script);
     parse(lexer);
     unsigned int result = lexer->lines;
     lexer_delete(lexer);
     return result;
 }
-void lex_and_parse(char * script){
-     parse_string(script);
-}
+void lex_and_parse(char *script) { parse_string(script); }
 
 int main() {
     char *script = "    // comment\n"
@@ -41,8 +38,8 @@ int main() {
                    "    Boolean bool2 = 0\n"
                    "    class Myclass(){}\n"
                    "    class MyClass2(MyClass){}";
-    lexer_t * lexer = lexer_new();
-     lexer = lexer_parse(lexer, script);
+    lexer_t *lexer = lexer_new();
+    lexer = lexer_parse(lexer, script);
 
     print("Only lexing:\n");
     nsecs_t time_start = nsecs();
@@ -53,20 +50,20 @@ int main() {
     nsecs_t time_end = nsecs();
     nsecs_t duration = time_end - time_start;
     print("Time: %s\n", format_time(duration));
-     print("Lines per second: %f\n",
-           ((float)lines) / (duration / 1000000000.0f));
+    print("Lines per second: %f\n",
+          ((float)lines) / (duration / 1000000000.0f));
     print("Full parsing (lexing+parsing):\n");
-      time_start = nsecs();
+    time_start = nsecs();
     parse_string(script);
-     time_end = nsecs();
-     duration = time_end - time_start;
-    
+    time_end = nsecs();
+    duration = time_end - time_start;
+
     print("Time: %s\n", format_time(duration));
-     print("Lines per second: %f\n",
-           ((float)lines) / (duration / 1000000000.0f));
-    
+    print("Lines per second: %f\n",
+          ((float)lines) / (duration / 1000000000.0f));
+
     print("Lines: %d\n", lines);
-    print("Token count: %zu\n", token_count); 
+    print("Token count: %zu\n", token_count);
     print("%s\n", rmalloc_stats());
     return 0;
 }

@@ -12,7 +12,6 @@ int printf_dummy(const char *format, ...) {
 #define printf printf_dummy
 #endif
 
-
 #include "class.h"
 #include "lexer.h"
 #include "parser.h"
