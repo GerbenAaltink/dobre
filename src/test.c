@@ -23,6 +23,7 @@ test_t *parse_test(char **content_str) {
     }
     script_start += 3;
 
+    // define end of script
     char *script_end = strstr(script_start, "```");
     if (!script_end) {
         printf("Error, missing end of script.\n");
@@ -34,6 +35,7 @@ test_t *parse_test(char **content_str) {
     strncpy(script, script_start, script_length);
     script_end += 3;
 
+    // define start or expectation
     char *expectation_start = strstr(script_end, "```");
     if (!expectation_start) {
         printf("Error, missing expectation start.\n");
@@ -41,6 +43,7 @@ test_t *parse_test(char **content_str) {
     }
     expectation_start += 3;
 
+    // define end of expectation
     char *expectation_end = strstr(expectation_start, "```");
     if (!expectation_end) {
         printf("Error: missing expectation end.\n");
@@ -52,14 +55,17 @@ test_t *parse_test(char **content_str) {
     strncpy(expectation, expectation_start, expectation_length);
     expectation_end += 3;
 
-    *content_str = expectation_end;
-
+    // prepare return value
     test_t *test = (test_t *)malloc(sizeof(test_t));
     test->definition.script = (char *)malloc(script_length + 1);
     test->definition.expectation = (char *)malloc(expectation_length + 1);
     strcpy(test->definition.script, script);
     strcpy(test->definition.expectation, expectation);
     test->valid = false;
+
+    // update pointer
+    *content_str = expectation_end;
+    
     return test;
 }
 
