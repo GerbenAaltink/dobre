@@ -29,7 +29,8 @@ typedef enum token_type_t {
     TOKEN_UNKNOWN = 0,
     TOKEN_STAR = 62,
     TOKEN_MACRO = 4,
-    TOKEN_WHILE = 50
+    TOKEN_WHILE = 50,
+    TOKEN_FOR = 51
 } token_type_t;
 
 typedef struct token_t {
@@ -121,6 +122,8 @@ token_t *token_next(lexer_t *lexer) {
         token->type = TOKEN_SYMBOL;
         if (!strcmp(token->value, "while")) {
             token->type = TOKEN_WHILE;
+        }else if(!strcmp(token->value,"for")){
+            token->type = TOKEN_FOR;
         }
     } else if (c == '"') {
         token->type = TOKEN_STRING;

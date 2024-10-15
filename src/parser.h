@@ -16,6 +16,8 @@ typedef struct parser_t {
 ast_t *parse_closure(parser_t *parser, token_type_t type);
 token_t *parser_next(parser_t *parser);
 ast_t *parse_class_definition(parser_t *parser);
+ast_t *parse_variable_definition(parser_t *parser);
+ast_t *parse_assignment(parser_t *parser);
 
 unsigned int get_token_index(parser_t *parser, token_t *token) {
     for (unsigned i = 0; i < parser->lexer->count; i++) {
@@ -202,9 +204,26 @@ ast_value_t *parse_value(parser_t *parser) {
     return ast_value_new(token->value, token_type);
 }
 
+ast_t * parse_for(parser_t * parser){
+    if (!parser_expect(parser, false, TOKEN_FOR, -1)) {
+        return (ast_t *)parse_value(parser);
+    }
+    parser_next(parser);
+    parser_expect(parser,true,TOKEN_PAREN_OPEN,-1);
+    parser_next(parser);
+    ast_t *start = parse_assignment(parser);
+    ast_t *end = parse_assignment(parser);
+    ast_t *statement = parse_assignment(parser);
+    parser_expect(parser,true,TOKEN_PAREN_CLOSE,-1);
+    parser_next(parser);
+    ast_t *closure = parse_closure(parser,TOKEN_BRACE_OPEN);
+    ast_for_t *ast_for = ast_for_new(start, end, statement, closure);
+    return (ast_t *)ast_for;
+}
+
 ast_t *parse_while(parser_t *parser) {
     if (!parser_expect(parser, false, TOKEN_WHILE, -1)) {
-        return (ast_t *)parse_value(parser);
+        return parse_for(parser);
     }
     parser_next(parser);
     ast_t *statement = parse_closure(parser, TOKEN_PAREN_OPEN);

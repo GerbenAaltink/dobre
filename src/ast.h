@@ -14,7 +14,8 @@ typedef enum ast_type_t {
     AST_VAR_DECLARATION,
     AST_ASSIGNMENT,
     AST_ARRAY,
-    AST_WHILE
+    AST_WHILE,
+    AST_FOR
 } ast_type_t;
 
 typedef struct ast_t {
@@ -28,6 +29,14 @@ typedef struct ast_value_t {
     char *value;
     char *type;
 } ast_value_t;
+
+typedef struct ast_for_t {
+    ast_t node;
+    ast_t * start;
+    ast_t * end;
+    ast_t * statement;
+    ast_t * closure;
+} ast_for_t;
 
 typedef struct ast_class_definition_t {
     ast_t node;
@@ -76,6 +85,7 @@ void ast_class_definition_delete(ast_class_definition_t *definition);
 void ast_var_declaration_delete(ast_var_declaration_t *declaration);
 void ast_assignment_delete(ast_assignment_t *assignment);
 void ast_while_delete(ast_while_t *while_fn);
+void ast_for_delete(ast_for_t *for_fn);
 void ast_delete(ast_t *node) {
     ast_dump(node);
     ast_t *child = node;
@@ -90,6 +100,8 @@ void ast_delete(ast_t *node) {
         ast_assignment_delete((ast_assignment_t *)child);
     else if (child->type == AST_WHILE) {
         ast_while_delete((ast_while_t *)child);
+    } else if (child->type == AST_FOR){
+        ast_for_delete((ast_for_t *)child);
     } else
         printf("NO DELETION\n");
     for (unsigned int i = 0; i < child->children_count; i++)
@@ -116,6 +128,7 @@ void ast_class_definition_dump(ast_class_definition_t *definition);
 void ast_var_declaration_dump(ast_var_declaration_t *declaration);
 void ast_assignment_dump(ast_assignment_t *assignment);
 void ast_while_dump(ast_while_t *while_fn);
+void ast_for_dump(ast_for_t *for_fn);
 
 void ast_dump(ast_t *node) {
     if (!node)
@@ -130,6 +143,8 @@ void ast_dump(ast_t *node) {
         ast_assignment_dump((ast_assignment_t *)node);
     } else if (node->type == AST_WHILE) {
         ast_while_dump((ast_while_t *)node);
+    } else if (node->type == AST_FOR){
+        ast_for_dump((ast_for_t *)node);
     }
 }
 
@@ -260,9 +275,36 @@ ast_while_t *ast_while_new(ast_t *statement, ast_t *closure) {
 }
 void ast_while_delete(ast_while_t *while_fn) {
     printf("Free while.\n");
-
     ast_delete(while_fn->statement);
     ast_delete(while_fn->closure);
+}
+
+void ast_for_dump(ast_for_t *for_fn) {
+    printf("for (\n");
+    ast_dump(for_fn->start);
+    ast_dump(for_fn->end);
+    ast_dump(for_fn->statement);
+    printf(")\n{\n");
+    ast_dump(for_fn->closure);
+    printf("}\n");
+}
+ast_for_t *ast_for_new(ast_t *start, ast_t *end, ast_t * statement, ast_t * closure) {
+    ast_for_t *result = (ast_for_t *)malloc(sizeof(ast_for_t));
+    ast_init(&result->node);
+
+    result->node.type = AST_FOR;
+    result->start = start;
+    result->end = end;
+    result->statement = statement;
+    result->closure = closure;
+    return result;
+}
+void ast_for_delete(ast_for_t *for_fn) {
+    printf("Free for.\n");
+    ast_delete(for_fn->statement);
+    ast_delete(for_fn->start);
+    ast_delete(for_fn->end);
+    ast_delete(for_fn->closure);
 }
 
 #endif
