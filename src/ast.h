@@ -399,7 +399,7 @@ ast_lt_t * ast_lt_new(char * identifier, ast_value_t * value) {
     return ast;
 }
 void ast_lt_dump(ast_lt_t *ast) {
-    printf("lt comparison %s with \"%s\".\n", ast->identifier,
+    printf("Lt comparison %s with \"%s\".\n", ast->identifier,
            ast->value->value);
 }
 void ast_lt_delete(ast_lt_t *ast){
@@ -417,7 +417,7 @@ ast_lte_t * ast_lte_new(char * identifier, ast_value_t * value) {
     return ast;
 }
 void ast_lte_dump(ast_lte_t *ast) {
-    printf("lte comparison %s with \"%s\".\n", ast->identifier,
+    printf("Lte comparison %s with \"%s\".\n", ast->identifier,
            ast->value->value);
 }
 void ast_lte_delete(ast_lte_t *ast){
@@ -435,7 +435,7 @@ ast_gt_t * ast_gt_new(char * identifier, ast_value_t * value) {
     return ast;
 }
 void ast_gt_dump(ast_gt_t *ast) {
-    printf("gt comparison %s with \"%s\".\n", ast->identifier,
+    printf("Gt comparison %s with \"%s\".\n", ast->identifier,
            ast->value->value);
 }
 void ast_gt_delete(ast_gt_t *ast){
@@ -452,7 +452,7 @@ ast_gte_t * ast_gte_new(char * identifier, ast_value_t * value) {
     return ast;
 }
 void ast_gte_dump(ast_gte_t *ast) {
-    printf("gte comparison %s with \"%s\".\n", ast->identifier,
+    printf("Gte comparison %s with \"%s\".\n", ast->identifier,
            ast->value->value);
 }
 void ast_gte_delete(ast_gte_t *ast){

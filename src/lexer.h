@@ -33,6 +33,8 @@ typedef enum token_type_t {
     TOKEN_LTE=65,
     TOKEN_GT=66,
     TOKEN_GTE=67,
+    TOKEN_NOT_EQUAL=68,
+    TOKEN_NOT=69,
     TOKEN_MACRO = 4,
     TOKEN_WHILE = 50,
     TOKEN_FOR = 51
@@ -198,7 +200,17 @@ token_t *token_next(lexer_t *lexer) {
             token->type = TOKEN_LT;
             token->value = cdup(c);
         }
-    }else if(c == '>') {
+    }else if(c == '!') {
+        if(buffer_peek(lexer->buffer) == '='){
+            buffer_pop(lexer->buffer);
+            token->type = TOKEN_NOT_EQUAL;
+            token->value = strdup("!=");
+        }else {
+            token->type = TOKEN_NOT;
+            token->value = cdup(c);
+        }
+    }
+    else if(c == '>') {
         if(buffer_peek(lexer->buffer) == '='){
             buffer_pop(lexer->buffer);
             token->type = TOKEN_GTE;
