@@ -16,7 +16,11 @@ typedef enum ast_type_t {
     AST_ARRAY,
     AST_WHILE,
     AST_FOR,
-    AST_EQUAL
+    AST_EQUAL,
+    AST_LT,
+    AST_LTE,
+    AST_GT,
+    AST_GTE
 } ast_type_t;
 
 typedef struct ast_t {
@@ -36,6 +40,30 @@ typedef struct ast_equal_t {
     char * identifier;
     ast_value_t *value;
 } ast_equal_t;
+
+typedef struct ast_lt_t {
+    ast_t node;
+    char * identifier;
+    ast_value_t *value;
+} ast_lt_t;
+
+typedef struct ast_lte_t {
+    ast_t node;
+    char * identifier;
+    ast_value_t *value;
+} ast_lte_t;
+
+typedef struct ast_gt_t {
+    ast_t node;
+    char * identifier;
+    ast_value_t *value;
+} ast_gt_t;
+
+typedef struct ast_gte_t {
+    ast_t node;
+    char * identifier;
+    ast_value_t *value;
+} ast_gte_t;
 
 typedef struct ast_for_t {
     ast_t node;
@@ -94,6 +122,11 @@ void ast_assignment_delete(ast_assignment_t *assignment);
 void ast_while_delete(ast_while_t *while_fn);
 void ast_for_delete(ast_for_t *for_fn);
 void ast_equal_delete(ast_equal_t *ast);
+void ast_gt_delete(ast_gt_t * ast);
+void ast_gte_delete(ast_gte_t * ast);
+void ast_lt_delete(ast_lt_t * ast);
+void ast_lte_delete(ast_lte_t * ast);
+
 void ast_delete(ast_t *node) {
     ast_dump(node);
     ast_t *child = node;
@@ -112,7 +145,15 @@ void ast_delete(ast_t *node) {
         ast_for_delete((ast_for_t *)child);
     } else if (child->type == AST_EQUAL){
         ast_equal_delete((ast_equal_t *)child);
-    } else
+    }  else if (child->type == AST_LT){
+        ast_lt_delete((ast_lt_t *)child);
+    }  else if (child->type == AST_LTE){
+        ast_lte_delete((ast_lte_t *)child);
+    }  else if (child->type == AST_GT){
+        ast_gt_delete((ast_gt_t *)child);
+    } else if (child->type == AST_GTE){
+        ast_gte_delete((ast_gte_t *)child);
+    }  else
         printf("NO DELETION\n");
     for (unsigned int i = 0; i < child->children_count; i++)
         ast_delete(child->children[i]);
@@ -140,6 +181,10 @@ void ast_assignment_dump(ast_assignment_t *assignment);
 void ast_while_dump(ast_while_t *while_fn);
 void ast_for_dump(ast_for_t *for_fn);
 void ast_equal_dump(ast_equal_t *ast);
+void ast_lt_dump(ast_lt_t *ast);
+void ast_lte_dump(ast_lte_t *ast);
+void ast_gt_dump(ast_gt_t *ast);
+void ast_gte_dump(ast_gte_t *ast);
 void ast_dump(ast_t *node) {
     if (!node)
         return;
@@ -157,6 +202,14 @@ void ast_dump(ast_t *node) {
         ast_for_dump((ast_for_t *)node);
     } else if (node->type == AST_EQUAL){
         ast_equal_dump((ast_equal_t*)node);
+    } else if (node->type == AST_LT){
+        ast_lt_dump((ast_lt_t*)node);
+    } else if (node->type == AST_LTE){
+        ast_lte_dump((ast_lte_t*)node);
+    } else if (node->type == AST_GT){
+        ast_gt_dump((ast_gt_t*)node);
+    } else if (node->type == AST_GTE){
+        ast_gte_dump((ast_gte_t*)node);
     }
 }
 
@@ -333,6 +386,77 @@ void ast_equal_dump(ast_equal_t *ast) {
 }
 void ast_equal_delete(ast_equal_t *ast){
     printf("Free equal comparison %s.\n", ast->identifier);
+    free(ast->identifier);
+    ast_value_delete(ast->value);
+}
+
+ast_lt_t * ast_lt_new(char * identifier, ast_value_t * value) {
+    ast_lt_t * ast = (ast_lt_t *)malloc(sizeof(ast_lt_t));
+    ast_init(&ast->node);
+    ast->node.type = AST_LT;
+    ast->identifier = strdup(identifier);
+    ast->value = value;
+    return ast;
+}
+void ast_lt_dump(ast_lt_t *ast) {
+    printf("lt comparison %s with \"%s\".\n", ast->identifier,
+           ast->value->value);
+}
+void ast_lt_delete(ast_lt_t *ast){
+    printf("Free lt comparison %s.\n", ast->identifier);
+    free(ast->identifier);
+    ast_value_delete(ast->value);
+}
+
+ast_lte_t * ast_lte_new(char * identifier, ast_value_t * value) {
+    ast_lte_t * ast = (ast_lte_t *)malloc(sizeof(ast_lte_t));
+    ast_init(&ast->node);
+    ast->node.type = AST_LTE;
+    ast->identifier = strdup(identifier);
+    ast->value = value;
+    return ast;
+}
+void ast_lte_dump(ast_lte_t *ast) {
+    printf("lte comparison %s with \"%s\".\n", ast->identifier,
+           ast->value->value);
+}
+void ast_lte_delete(ast_lte_t *ast){
+    printf("Free lte comparison %s.\n", ast->identifier);
+    free(ast->identifier);
+    ast_value_delete(ast->value);
+}
+
+ast_gt_t * ast_gt_new(char * identifier, ast_value_t * value) {
+    ast_gt_t * ast = (ast_gt_t *)malloc(sizeof(ast_gt_t));
+    ast_init(&ast->node);
+    ast->node.type = AST_GT;
+    ast->identifier = strdup(identifier);
+    ast->value = value;
+    return ast;
+}
+void ast_gt_dump(ast_gt_t *ast) {
+    printf("gt comparison %s with \"%s\".\n", ast->identifier,
+           ast->value->value);
+}
+void ast_gt_delete(ast_gt_t *ast){
+    printf("Free gt comparison %s.\n", ast->identifier);
+    free(ast->identifier);
+    ast_value_delete(ast->value);
+}
+ast_gte_t * ast_gte_new(char * identifier, ast_value_t * value) {
+    ast_gte_t * ast = (ast_gte_t *)malloc(sizeof(ast_gte_t));
+    ast_init(&ast->node);
+    ast->node.type = AST_GTE;
+    ast->identifier = strdup(identifier);
+    ast->value = value;
+    return ast;
+}
+void ast_gte_dump(ast_gte_t *ast) {
+    printf("gte comparison %s with \"%s\".\n", ast->identifier,
+           ast->value->value);
+}
+void ast_gte_delete(ast_gte_t *ast){
+    printf("Free gte comparison %s.\n", ast->identifier);
     free(ast->identifier);
     ast_value_delete(ast->value);
 }
