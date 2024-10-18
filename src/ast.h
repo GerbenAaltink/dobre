@@ -20,7 +20,9 @@ typedef enum ast_type_t {
     AST_LT,
     AST_LTE,
     AST_GT,
-    AST_GTE
+    AST_GTE,
+    AST_NOT,
+    AST_NOT_EQUAL
 } ast_type_t;
 
 typedef struct ast_t {
@@ -64,6 +66,18 @@ typedef struct ast_gte_t {
     char * identifier;
     ast_value_t *value;
 } ast_gte_t;
+
+typedef struct ast_not_t {
+    ast_t node;
+    char * identifier;
+    ast_value_t *value;
+} ast_not_t;
+
+typedef struct ast_not_equal_t {
+    ast_t node;
+    char * identifier;
+    ast_value_t *value;
+} ast_not_equal_t;
 
 typedef struct ast_for_t {
     ast_t node;
@@ -126,6 +140,8 @@ void ast_gt_delete(ast_gt_t * ast);
 void ast_gte_delete(ast_gte_t * ast);
 void ast_lt_delete(ast_lt_t * ast);
 void ast_lte_delete(ast_lte_t * ast);
+void ast_not_delete(ast_not_t * ast);
+void ast_not_equal_delete(ast_not_equal_t * ast);
 
 void ast_delete(ast_t *node) {
     ast_dump(node);
@@ -153,7 +169,11 @@ void ast_delete(ast_t *node) {
         ast_gt_delete((ast_gt_t *)child);
     } else if (child->type == AST_GTE){
         ast_gte_delete((ast_gte_t *)child);
-    }  else
+    } else if(child->type == AST_NOT_EQUAL){
+        ast_not_equal_delete((ast_not_equal_t *)child);
+    } else if(child->type == AST_NOT){
+        ast_not_delete((ast_not_t *)child);
+    } else
         printf("NO DELETION\n");
     for (unsigned int i = 0; i < child->children_count; i++)
         ast_delete(child->children[i]);
@@ -457,6 +477,42 @@ void ast_gte_dump(ast_gte_t *ast) {
 }
 void ast_gte_delete(ast_gte_t *ast){
     printf("Free gte comparison %s.\n", ast->identifier);
+    free(ast->identifier);
+    ast_value_delete(ast->value);
+}
+
+ast_not_equal_t * ast_not_equal_new(char * identifier, ast_value_t * value) {
+    ast_not_equal_t * ast = (ast_not_equal_t *)malloc(sizeof(ast_not_equal_t));
+    ast_init(&ast->node);
+    ast->node.type = AST_NOT_EQUAL;
+    ast->identifier = strdup(identifier);
+    ast->value = value;
+    return ast;
+}
+void ast_not_equal_dump(ast_not_equal_t *ast) {
+    printf("not_equal comparison %s with \"%s\".\n", ast->identifier,
+           ast->value->value);
+}
+void ast_not_equal_delete(ast_not_equal_t *ast){
+    printf("Free not_equal comparison %s.\n", ast->identifier);
+    free(ast->identifier);
+    ast_value_delete(ast->value);
+}
+
+ast_not_t * ast_not_new(char * identifier, ast_value_t * value) {
+    ast_not_t * ast = (ast_not_t *)malloc(sizeof(ast_not_t));
+    ast_init(&ast->node);
+    ast->node.type = AST_NOT;
+    ast->identifier = strdup(identifier);
+    ast->value = value;
+    return ast;
+}
+void ast_not_dump(ast_not_t *ast) {
+    printf("not comparison %s with \"%s\".\n", ast->identifier,
+           ast->value->value);
+}
+void ast_not_delete(ast_not_t *ast){
+    printf("Free not comparison %s.\n", ast->identifier);
     free(ast->identifier);
     ast_value_delete(ast->value);
 }
