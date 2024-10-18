@@ -15,7 +15,8 @@ typedef enum ast_type_t {
     AST_ASSIGNMENT,
     AST_ARRAY,
     AST_WHILE,
-    AST_FOR
+    AST_FOR,
+    AST_EQUAL
 } ast_type_t;
 
 typedef struct ast_t {
@@ -29,6 +30,12 @@ typedef struct ast_value_t {
     char *value;
     char *type;
 } ast_value_t;
+
+typedef struct ast_equal_t {
+    ast_t node;
+    char * identifier;
+    ast_value_t *value;
+} ast_equal_t;
 
 typedef struct ast_for_t {
     ast_t node;
@@ -86,6 +93,7 @@ void ast_var_declaration_delete(ast_var_declaration_t *declaration);
 void ast_assignment_delete(ast_assignment_t *assignment);
 void ast_while_delete(ast_while_t *while_fn);
 void ast_for_delete(ast_for_t *for_fn);
+void ast_equal_delete(ast_equal_t *ast);
 void ast_delete(ast_t *node) {
     ast_dump(node);
     ast_t *child = node;
@@ -102,6 +110,8 @@ void ast_delete(ast_t *node) {
         ast_while_delete((ast_while_t *)child);
     } else if (child->type == AST_FOR){
         ast_for_delete((ast_for_t *)child);
+    } else if (child->type == AST_EQUAL){
+        ast_equal_delete((ast_equal_t *)child);
     } else
         printf("NO DELETION\n");
     for (unsigned int i = 0; i < child->children_count; i++)
@@ -129,7 +139,7 @@ void ast_var_declaration_dump(ast_var_declaration_t *declaration);
 void ast_assignment_dump(ast_assignment_t *assignment);
 void ast_while_dump(ast_while_t *while_fn);
 void ast_for_dump(ast_for_t *for_fn);
-
+void ast_equal_dump(ast_equal_t *ast);
 void ast_dump(ast_t *node) {
     if (!node)
         return;
@@ -145,6 +155,8 @@ void ast_dump(ast_t *node) {
         ast_while_dump((ast_while_t *)node);
     } else if (node->type == AST_FOR){
         ast_for_dump((ast_for_t *)node);
+    } else if (node->type == AST_EQUAL){
+        ast_equal_dump((ast_equal_t*)node);
     }
 }
 
@@ -305,6 +317,24 @@ void ast_for_delete(ast_for_t *for_fn) {
     ast_delete(for_fn->start);
     ast_delete(for_fn->end);
     ast_delete(for_fn->closure);
+}
+
+ast_equal_t * ast_equal_new(char * identifier, ast_value_t * value) {
+    ast_equal_t * ast = (ast_equal_t *)malloc(sizeof(ast_equal_t));
+    ast_init(&ast->node);
+    ast->node.type = AST_EQUAL;
+    ast->identifier = strdup(identifier);
+    ast->value = value;
+    return ast;
+}
+void ast_equal_dump(ast_equal_t *ast) {
+    printf("Equal comparison %s with \"%s\".\n", ast->identifier,
+           ast->value->value);
+}
+void ast_equal_delete(ast_equal_t *ast){
+    printf("Free equal comparison %s.\n", ast->identifier);
+    free(ast->identifier);
+    ast_value_delete(ast->value);
 }
 
 #endif

@@ -206,6 +206,8 @@ ast_value_t *parse_value(parser_t *parser) {
 
 ast_t * parse_for(parser_t * parser){
     if (!parser_expect(parser, false, TOKEN_FOR, -1)) {
+        
+    printf("AAA\n");
         return (ast_t *)parse_value(parser);
     }
     parser_next(parser);
@@ -213,8 +215,14 @@ ast_t * parse_for(parser_t * parser){
     parser_next(parser);
     ast_t *start = parse_assignment(parser);
     ast_t *end = parse_assignment(parser);
+    printf("HIERZZ\n");
+    
     ast_t *statement = parse_assignment(parser);
+    
     parser_expect(parser,true,TOKEN_PAREN_CLOSE,-1);
+    printf("HIERZZ\n");
+    
+    
     parser_next(parser);
     ast_t *closure = parse_closure(parser,TOKEN_BRACE_OPEN);
     ast_for_t *ast_for = ast_for_new(start, end, statement, closure);

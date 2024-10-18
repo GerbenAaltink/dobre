@@ -28,6 +28,7 @@ typedef enum token_type_t {
     TOKEN_WHITESPACE = 1,
     TOKEN_UNKNOWN = 0,
     TOKEN_STAR = 62,
+    TOKEN_EQUAL = 63,
     TOKEN_MACRO = 4,
     TOKEN_WHILE = 50,
     TOKEN_FOR = 51
@@ -185,8 +186,14 @@ token_t *token_next(lexer_t *lexer) {
         token->value = buffer_to_str(buffer);
         token->type = TOKEN_MULTILINE_COMMENT;
     } else if (c == '=') {
-        token->type = TOKEN_IS;
-        token->value = cdup(c);
+        if(buffer_peek(lexer->buffer) == '='){
+            buffer_pop(lexer->buffer);
+            token->type = TOKEN_EQUAL;
+            token->value = strdup("==");
+        }else{
+            token->type = TOKEN_IS;
+            token->value = cdup(c);
+        }
     } else if (c == '{') {
         token->type = TOKEN_BRACE_OPEN;
         token->value = cdup(c);
