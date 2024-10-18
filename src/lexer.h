@@ -29,6 +29,10 @@ typedef enum token_type_t {
     TOKEN_UNKNOWN = 0,
     TOKEN_STAR = 62,
     TOKEN_EQUAL = 63,
+    TOKEN_LT = 64,
+    TOKEN_LTE=65,
+    TOKEN_GT=66,
+    TOKEN_GTE=67,
     TOKEN_MACRO = 4,
     TOKEN_WHILE = 50,
     TOKEN_FOR = 51
@@ -185,6 +189,24 @@ token_t *token_next(lexer_t *lexer) {
         }
         token->value = buffer_to_str(buffer);
         token->type = TOKEN_MULTILINE_COMMENT;
+    }else if(c == '<') {
+        if(buffer_peek(lexer->buffer) == '='){
+            buffer_pop(lexer->buffer);
+            token->type = TOKEN_LTE;
+            token->value = strdup("<=");
+        }else{
+            token->type = TOKEN_LT;
+            token->value = cdup(c);
+        }
+    }else if(c == '>') {
+        if(buffer_peek(lexer->buffer) == '='){
+            buffer_pop(lexer->buffer);
+            token->type = TOKEN_GTE;
+            token->value = strdup(">=");
+        }else {
+            token->type = TOKEN_GT;
+            token->value = cdup(c);
+        }
     } else if (c == '=') {
         if(buffer_peek(lexer->buffer) == '='){
             buffer_pop(lexer->buffer);
