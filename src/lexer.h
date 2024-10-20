@@ -37,7 +37,8 @@ typedef enum token_type_t {
     TOKEN_NOT = 69,
     TOKEN_MACRO = 4,
     TOKEN_WHILE = 50,
-    TOKEN_FOR = 51
+    TOKEN_FOR = 51,
+    TOKEN_CLASS = 52
 } token_type_t;
 
 typedef struct token_t {
@@ -126,11 +127,14 @@ token_t *token_next(lexer_t *lexer) {
             buffer_push(buffer, c);
         }
         token->value = buffer_to_str(buffer);
-        token->type = TOKEN_SYMBOL;
         if (!strcmp(token->value, "while")) {
             token->type = TOKEN_WHILE;
         } else if (!strcmp(token->value, "for")) {
             token->type = TOKEN_FOR;
+        } else if (!strcmp(token->value, "class")) {
+            token->type = TOKEN_CLASS;
+        } else {
+            token->type = TOKEN_SYMBOL;
         }
     } else if (c == '"') {
         token->type = TOKEN_STRING;

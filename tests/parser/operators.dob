@@ -1,0 +1,9 @@
+class Integer {}
+Integer i = 1
+i = 1
+i == 1
+i != 1
+i > 1
+i < 1
+i >= 1
+i <= 1

@@ -19,6 +19,7 @@ token_t *parser_next(parser_t *parser);
 token_t *parser_peek(parser_t *parser);
 ast_t *parse_class_definition(parser_t *parser);
 ast_t *parse_variable_definition(parser_t *parser);
+ast_t *parse_statement(parser_t *parser);
 ast_t *parse_expression(parser_t *parser);
 ast_t *parse_assignment(parser_t *parser);
 ast_value_t *parse_value(parser_t *parser);
@@ -170,13 +171,17 @@ token_t *parser_expect(parser_t *parser, bool required, ...) {
         return NULL;
     }
     int token_type = -1;
+    bool token_found = false;
     for (unsigned int i = 0; i < max; i++) {
         token_type = va_arg(args, int);
         if (token_type == -1) {
+            token_found = true;
             break;
         } else if ((int)token->type == token_type) {
+            token_found = true;
             break;
         } else if (token_type == TOKEN_UNKNOWN) {
+            token_found = true;
             break;
         }
     }
@@ -186,14 +191,18 @@ token_t *parser_expect(parser_t *parser, bool required, ...) {
                      token->value);
         exit(2);
     }
+    if(token_found == false)
+        token == NULL;
     return token_type == -1 ? NULL : token;
 }
 
 token_t *parser_advance(parser_t *parser, bool required, ...) {
     va_list args;
     va_start(args, required);
-    parser_expect(parser, required, args);
-    token_t *token = parser_next(parser);
+    token_t * token = NULL;
+    token = parser_expect(parser, required, args);
+    if(token)
+        token = parser_next(parser);
     va_end(args);
     return token;
 }
@@ -244,7 +253,7 @@ ast_value_t *parse_value(parser_t *parser) {
 
 ast_t *parse_for(parser_t *parser) {
     if (!parser_expect(parser, false, TOKEN_FOR, -1))
-        return (ast_t *)parse_value(parser);
+        return (ast_t *)parse_variable_definition(parser);// parse_value(parser);
     parser_next(parser);
     parser_advance(parser, true, TOKEN_PAREN_OPEN, -1);
     ast_t *start = parse_expression(parser);
@@ -257,11 +266,10 @@ ast_t *parse_for(parser_t *parser) {
     return (ast_t *)ast_for;
 }
 
-ast_t *parse_while(parser_t *parser) {
-    if (!parser_expect(parser, false, TOKEN_WHILE, -1)) {
+ast_t *parse_while(parser_t *parser) { 
+    if (!parser_advance(parser, false, TOKEN_WHILE, -1)) {
         return parse_for(parser);
     }
-    parser_next(parser);
     ast_t *statement = parse_closure(parser, TOKEN_PAREN_OPEN);
     ast_t *closure = parse_closure(parser, TOKEN_BRACE_OPEN);
     ast_while_t *ast_while = ast_while_new(statement, closure);
@@ -329,7 +337,7 @@ ast_t *parse_closure(parser_t *parser, token_type_t open_type) {
         token = parser_next(parser);
     while (token && (int)token->type != close_type && (int)token->type > 10) {
         token_t *token_start = parser->current_token;
-        ast_t *statement = parse_class_definition(parser);
+        ast_t *statement = parse_statement(parser);
         if (statement) {
             ast_add_child((ast_t *)closure, (ast_t *)statement);
         }
@@ -360,12 +368,14 @@ array_t *parse_class_extends(parser_t *parser,
 }
 
 ast_t *parse_class_definition(parser_t *parser) {
-    token_t *token = parser->current_token;
-    if (!(parser_expect(parser, TOKEN_SYMBOL) &&
-          !strcmp(parser->current_token->value, "class")))
-        return parse_variable_definition(parser);
+    token_t * token;
+    if (!(token = parser_expect(parser, false, TOKEN_CLASS, -1)))
+        return parse_while(parser);
+   
+    
     token = parser_next(parser);
-    parser_expect(parser, true, TOKEN_SYMBOL, -1);
+    // parser_expect(parser, true, TOKEN_SYMBOL, -1);
+    printf("clsname: %s\n",token->value);
     ast_class_definition_t *definition = ast_class_definition_new(token->value);
     parser_next(parser);
     token = parser_expect(parser, true, TOKEN_PAREN_OPEN, TOKEN_BRACE_OPEN, -1);
@@ -391,6 +401,10 @@ ast_t *parse_class_definition(parser_t *parser) {
     return (ast_t *)definition;
 }
 
+ast_t *parse_statement(parser_t * parser){
+    return parse_class_definition(parser);
+}
+
 ast_t *parse(lexer_t *lexer) {
     parser_t *parser = parser_new(lexer);
     token_t *token_before = NULL;
@@ -403,7 +417,9 @@ ast_t *parse(lexer_t *lexer) {
         if (token_before && token_after == token_before) {
             parser_raise(parser, "Syntax error. Unexpected '%s'\n",
                          token_before->value);
-            return NULL;
+            printf("debug: in main parser function.\n");
+            exit(1);
+            //return NULL;
 
             // exit(0);
             // token_dump(token_before);

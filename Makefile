@@ -4,13 +4,13 @@ SRC = ./src/
 BIN = ./bin/
 BUILD_CMD = $(CC) $(CFLAGS) $(SRC)main.c -o dobre
 
-all: test run
+all: test build_all run
 
 unit_test: build_fast buffer lexer parser
 
 script_test: build_fast 
-	./bin/dobre ./tests/parser/double_extend_error.dob
-	./bin/dobre ./tests/parser/declare_unknown_type.dob | true
+	-./bin/dobre ./tests/parser/double_extend_error.dob
+	-./bin/dobre ./tests/parser/declare_unknown_type.dob
 	./bin/dobre ./tests/parser/while.dob
 	./bin/dobre ./tests/parser/for.dob
 	./bin/dobre ./tests/parser/operators.dob
