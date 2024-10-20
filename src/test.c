@@ -65,7 +65,7 @@ test_t *parse_test(char **content_str) {
 
     // update pointer
     *content_str = expectation_end;
-    
+
     return test;
 }
 

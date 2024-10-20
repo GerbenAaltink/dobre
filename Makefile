@@ -1,17 +1,39 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Ofast -Wpedantic -I./3rdparty -isystem ./3rdparty -std=c2x
+CFLAGS = -Wall -Wextra -Werror -Wpedantic -I./3rdparty -isystem ./3rdparty
 SRC = ./src/
+BIN = ./bin/
+BUILD_CMD = $(CC) $(CFLAGS) $(SRC)main.c -o dobre
 
-all: buffer lexer build run
+all: test run
 
-test: buffer lexer parser build 
+unit_test: build_fast buffer lexer parser
+
+script_test: build_fast 
 	./bin/dobre ./tests/parser/double_extend_error.dob
 	./bin/dobre ./tests/parser/declare_unknown_type.dob | true
 	./bin/dobre ./tests/parser/while.dob
 	./bin/dobre ./tests/parser/for.dob
+	./bin/dobre ./tests/parser/operators.dob
+
+test: script_test unit_test
 
 build: ensure_bin 
-	$(CC) $(CFLAGS) $(SRC)main.c -o dobre
+	$(BUILD_CMD) -o dobre -Ofast
+	cp dobre ./bin/dobre
+
+build_all: build
+	$(BUILD_CMD) -o  $(BIN)dobre_c99 -std=c99
+	$(BUILD_CMD) -o  $(BIN)dobre_gnu99 -std=gnu99
+	$(BUILD_CMD) -o  $(BIN)dobre_c11 -std=c11
+	$(BUILD_CMD) -o  $(BIN)dobre_gnu11 -std=gnu11
+	$(BUILD_CMD) -o  $(BIN)dobre_c17 -std=c17
+	$(BUILD_CMD) -o  $(BIN)dobre_gnu17 -std=gnu17
+	$(BUILD_CMD) -o  $(BIN)dobre_c2x -std=c2x
+	$(BUILD_CMD) -o  $(BIN)dobre_gnu2x -std=gnu2x
+
+
+build_fast:
+	$(CC) $(SRC)main.c -o dobre -Werror -std=c17
 	cp dobre ./bin/dobre
 
 run:

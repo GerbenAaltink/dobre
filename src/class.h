@@ -1,10 +1,8 @@
 #ifndef CLASS_H
 #define CLASS_H
+#include "dobre.h"
 #include "string.h"
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 typedef enum class_type_t {
     CLASS_VALUE,

@@ -1,10 +1,8 @@
 #ifndef BUFFER_H
 #define BUFFER_H
+#include "dobre.h"
 #include <assert.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 typedef struct buffer_t {
     char *ptr;
     char *data;
