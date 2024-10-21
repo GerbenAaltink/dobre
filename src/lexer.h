@@ -3,59 +3,14 @@
 
 #include "buffer.h"
 #include "string.h"
+#include "token.h"
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-
-typedef enum token_type_t {
-    TOKEN_STRING = 20,
-    TOKEN_INT = 21,
-    TOKEN_DECIMAL = 22,
-    TOKEN_NUMBER = 23,
-    TOKEN_BOOLEAN = 24,
-    TOKEN_SYMBOL = 30,
-    TOKEN_PAREN_OPEN = 31,
-    TOKEN_PAREN_CLOSE = 32,
-    TOKEN_BRACE_OPEN = 33,
-    TOKEN_BRACE_CLOSED = 34,
-    TOKEN_COMMENT = 2,
-    TOKEN_MULTILINE_COMMENT = 3,
-    TOKEN_IS = 60,
-    TOKEN_DOT = 61,
-    TOKEN_WHITESPACE = 1,
-    TOKEN_UNKNOWN = 0,
-    TOKEN_STAR = 62,
-    TOKEN_EQUAL = 63,
-    TOKEN_LT = 64,
-    TOKEN_LTE = 65,
-    TOKEN_GT = 66,
-    TOKEN_GTE = 67,
-    TOKEN_NOT_EQUAL = 68,
-    TOKEN_NOT = 69,
-    TOKEN_MACRO = 4,
-    TOKEN_WHILE = 50,
-    TOKEN_FOR = 51,
-    TOKEN_CLASS = 52
-} token_type_t;
-
-typedef struct token_t {
-    char *value;
-    size_t length;
-    token_type_t type;
-    unsigned int line;
-    unsigned int col;
-    unsigned int index;
-} token_t;
-
-void token_delete(token_t *token) {
-    if (token->value)
-        free(token->value);
-    free(token);
-}
-
+        
 typedef struct lexer_t {
     token_t **tokens;
     size_t count;
@@ -74,14 +29,9 @@ lexer_t *lexer_new() {
     return result;
 }
 
-token_t *token_new() {
-    token_t *result = (token_t *)calloc(1, sizeof(token_t));
-    result->value = NULL;
-    return result;
-}
-
 bool issymbolchar(char c) { return c == '_' || isalnum(c); }
 bool isnumberchar(char c) { return c == '.' || isdigit(c); }
+
 char *cdup(char c) {
     char *result = (char *)malloc(2);
     result[0] = c;
@@ -89,7 +39,7 @@ char *cdup(char c) {
     return result;
 }
 
-token_t *token_next(lexer_t *lexer) {
+token_t *lexer_next(lexer_t *lexer) {
     char c = buffer_pop(lexer->buffer);
     if (c == 0)
         return NULL;
@@ -267,12 +217,6 @@ token_t *token_next(lexer_t *lexer) {
     return token;
 }
 
-void token_dump(token_t *token) {
-    printf("Type: %d\n", token->type);
-    printf("Value: <%s>\n", token->value);
-    printf("Position: %d:%d\n", token->line, token->col);
-}
-
 void lexer_dump(lexer_t *lexer) {
     printf("Token count: %zu\n", lexer->count);
     for (unsigned int i = 0; i < lexer->count; i++) {
@@ -305,7 +249,7 @@ lexer_t *lexer_parse(lexer_t *lexer, char *source) {
     lexer->source = strdup(source);
     lexer->buffer = buffer_new(source, strlen(source));
     token_t *token;
-    while (lexer->buffer->eof == false && (token = token_next(lexer))) {
+    while (lexer->buffer->eof == false && (token = lexer_next(lexer))) {
         lexer_add_token(lexer, token);
     }
     if (lexer->count)

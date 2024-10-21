@@ -192,7 +192,7 @@ token_t *parser_expect(parser_t *parser, bool required, ...) {
         exit(2);
     }
     if(token_found == false)
-        token == NULL;
+        token = NULL;
     return token_type == -1 ? NULL : token;
 }
 

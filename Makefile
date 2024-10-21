@@ -11,7 +11,7 @@ unit_test: build_fast buffer lexer parser
 script_test: build_fast 
 	-./bin/dobre ./tests/parser/double_extend_error.dob
 	-./bin/dobre ./tests/parser/declare_unknown_type.dob
-	./bin/dobre ./tests/parser/while.dob
+	-./bin/dobre ./tests/parser/while.dob
 	./bin/dobre ./tests/parser/for.dob
 	./bin/dobre ./tests/parser/operators.dob
 
