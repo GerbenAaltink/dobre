@@ -191,7 +191,7 @@ token_t *parser_expect(parser_t *parser, bool required, ...) {
                      token->value);
         exit(2);
     }
-    if(token_found == false)
+    if (token_found == false)
         token = NULL;
     return token_type == -1 ? NULL : token;
 }
@@ -199,9 +199,9 @@ token_t *parser_expect(parser_t *parser, bool required, ...) {
 token_t *parser_advance(parser_t *parser, bool required, ...) {
     va_list args;
     va_start(args, required);
-    token_t * token = NULL;
+    token_t *token = NULL;
     token = parser_expect(parser, required, args);
-    if(token)
+    if (token)
         token = parser_next(parser);
     va_end(args);
     return token;
@@ -253,7 +253,8 @@ ast_value_t *parse_value(parser_t *parser) {
 
 ast_t *parse_for(parser_t *parser) {
     if (!parser_expect(parser, false, TOKEN_FOR, -1))
-        return (ast_t *)parse_variable_definition(parser);// parse_value(parser);
+        return (ast_t *)parse_variable_definition(
+            parser); // parse_value(parser);
     parser_next(parser);
     parser_advance(parser, true, TOKEN_PAREN_OPEN, -1);
     ast_t *start = parse_expression(parser);
@@ -266,7 +267,7 @@ ast_t *parse_for(parser_t *parser) {
     return (ast_t *)ast_for;
 }
 
-ast_t *parse_while(parser_t *parser) { 
+ast_t *parse_while(parser_t *parser) {
     if (!parser_advance(parser, false, TOKEN_WHILE, -1)) {
         return parse_for(parser);
     }
@@ -368,14 +369,13 @@ array_t *parse_class_extends(parser_t *parser,
 }
 
 ast_t *parse_class_definition(parser_t *parser) {
-    token_t * token;
+    token_t *token;
     if (!(token = parser_expect(parser, false, TOKEN_CLASS, -1)))
         return parse_while(parser);
-   
-    
+
     token = parser_next(parser);
     // parser_expect(parser, true, TOKEN_SYMBOL, -1);
-    printf("clsname: %s\n",token->value);
+    printf("clsname: %s\n", token->value);
     ast_class_definition_t *definition = ast_class_definition_new(token->value);
     parser_next(parser);
     token = parser_expect(parser, true, TOKEN_PAREN_OPEN, TOKEN_BRACE_OPEN, -1);
@@ -401,7 +401,7 @@ ast_t *parse_class_definition(parser_t *parser) {
     return (ast_t *)definition;
 }
 
-ast_t *parse_statement(parser_t * parser){
+ast_t *parse_statement(parser_t *parser) {
     return parse_class_definition(parser);
 }
 
@@ -419,7 +419,7 @@ ast_t *parse(lexer_t *lexer) {
                          token_before->value);
             printf("debug: in main parser function.\n");
             exit(1);
-            //return NULL;
+            // return NULL;
 
             // exit(0);
             // token_dump(token_before);

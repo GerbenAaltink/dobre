@@ -33,7 +33,6 @@ typedef enum token_type_t {
     TOKEN_CLASS = 52
 } token_type_t;
 
-
 typedef struct token_t {
     char *value;
     size_t length;
@@ -49,7 +48,6 @@ token_t *token_new() {
     return result;
 }
 
-
 void token_delete(token_t *token) {
     if (token->value)
         free(token->value);
@@ -62,6 +60,4 @@ void token_dump(token_t *token) {
     printf("Position: %d:%d\n", token->line, token->col);
 }
 
-
-
-#endif 
+#endif
