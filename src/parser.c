@@ -38,6 +38,7 @@ int main() {
                    "    Boolean bool2 = 0\n"
                    "    class Myclass(){}\n"
                    "    class MyClass2(MyClass){}";
+   
     lexer_t *lexer = lexer_new();
     lexer = lexer_parse(lexer, script);
 

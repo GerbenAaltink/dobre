@@ -1,0 +1,5 @@
+class String {}
+
+String pony(){}
+
+pony(String arg1, String arg2 = "with_value"){}

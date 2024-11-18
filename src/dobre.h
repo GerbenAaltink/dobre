@@ -1,5 +1,6 @@
 #ifndef DOBRE_MAIN
 #define DOBRE_MAIN
+#include <rlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

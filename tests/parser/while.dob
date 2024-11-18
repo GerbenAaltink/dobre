@@ -1,6 +1,15 @@
 class String{}
+class String2{}
+class String3{}
+class String4{}
 
-while(){while(String a = 2){}}
+while(){
+    while(
+        String a = 2
+    ){
+
+    }
+}
 while(){while(String b = 3){}}
 
 // Nested

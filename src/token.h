@@ -12,7 +12,7 @@ typedef enum token_type_t {
     TOKEN_PAREN_OPEN = 31,
     TOKEN_PAREN_CLOSE = 32,
     TOKEN_BRACE_OPEN = 33,
-    TOKEN_BRACE_CLOSED = 34,
+    TOKEN_BRACE_CLOSE = 34,
     TOKEN_COMMENT = 2,
     TOKEN_MULTILINE_COMMENT = 3,
     TOKEN_IS = 60,
@@ -30,7 +30,8 @@ typedef enum token_type_t {
     TOKEN_MACRO = 4,
     TOKEN_WHILE = 50,
     TOKEN_FOR = 51,
-    TOKEN_CLASS = 52
+    TOKEN_CLASS = 52,
+    TOKEN_COMMA = 70
 } token_type_t;
 
 typedef struct token_t {

@@ -1,6 +1,6 @@
 #define RMALLOC_OVERRIDE 0
 #define RMALLOC_DEBUG 1
-#include <rlib.h>
+#include "dobre.h"
 #define print rprintb
 
 int printf_dummy(const char *format, ...) {

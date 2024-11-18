@@ -51,7 +51,7 @@ token_t *lexer_next(lexer_t *lexer) {
         token->type = TOKEN_BRACE_OPEN;
         token->value = cdup(c);
     } else if (c == '}') {
-        token->type = TOKEN_BRACE_CLOSED;
+        token->type = TOKEN_BRACE_CLOSE;
         token->value = cdup(c);
     } else if (isdigit(c) ||
                (c == '-' && isdigit(buffer_peek(lexer->buffer)))) {
@@ -111,6 +111,9 @@ token_t *lexer_next(lexer_t *lexer) {
         }
         buffer_pop(lexer->buffer);
         token->value = buffer_to_str(buffer);
+    } else if(c == ','){
+        token->value = cdup(c);
+        token->type = TOKEN_COMMA;
     } else if (c == '#') {
         buffer_pop(lexer->buffer);
         buffer_t *buffer = buffer_new(NULL, 0);
@@ -185,7 +188,7 @@ token_t *lexer_next(lexer_t *lexer) {
         token->type = TOKEN_BRACE_OPEN;
         token->value = cdup(c);
     } else if (c == '}') {
-        token->type = TOKEN_BRACE_CLOSED;
+        token->type = TOKEN_BRACE_CLOSE;
         token->value = cdup(c);
     } else if (c == '.') {
         token->type = TOKEN_DOT;
@@ -206,7 +209,7 @@ token_t *lexer_next(lexer_t *lexer) {
         token->type = TOKEN_BRACE_OPEN;
         token->value = cdup(c);
     } else if (c == '}') {
-        token->type = TOKEN_BRACE_CLOSED;
+        token->type = TOKEN_BRACE_CLOSE;
         token->value = cdup(c);
     } else {
         token->type = TOKEN_UNKNOWN;

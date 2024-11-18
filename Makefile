@@ -6,14 +6,18 @@ BUILD_CMD = $(CC) $(CFLAGS) $(SRC)main.c -o dobre
 
 all: test build_all run
 
-unit_test: build_fast buffer lexer parser
+unit_test: build_fast buffer lexer parser dict 
 
 script_test: build_fast 
+	
+	-./bin/dobre ./tests/parser/double_class_declaration.dob
+	./bin/dobre ./tests/parser/assignment.dob
 	-./bin/dobre ./tests/parser/double_extend_error.dob
 	-./bin/dobre ./tests/parser/declare_unknown_type.dob
 	-./bin/dobre ./tests/parser/while.dob
 	./bin/dobre ./tests/parser/for.dob
 	./bin/dobre ./tests/parser/operators.dob
+	./bin/dobre ./tests/parser/declare_function.dob
 
 test: script_test unit_test
 
@@ -60,6 +64,10 @@ lexer: ensure_bin
 parser: ensure_bin
 	$(CC) $(CFLAGS) $(SRC)parser.c -o ./bin/parser
 	./bin/parser
+
+dict: ensure_bin
+	$(CC) $(CFLAGS) $(SRC)dict.c -o ./bin/dict
+	./bin/dict
 
 
 big.disabled: ensure_bin

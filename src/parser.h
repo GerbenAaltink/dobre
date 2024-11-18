@@ -1,5 +1,6 @@
 #ifndef PARSE_H
 #define PARSE_H
+#include "dict.h"
 #include "array.h"
 #include "ast.h"
 #include "lexer.h"
@@ -23,6 +24,7 @@ ast_t *parse_statement(parser_t *parser);
 ast_t *parse_expression(parser_t *parser);
 ast_t *parse_assignment(parser_t *parser);
 ast_value_t *parse_value(parser_t *parser);
+dict_t * parse_params(parser_t *parser);
 
 unsigned int get_token_index(parser_t *parser, token_t *token) {
     for (unsigned i = 0; i < parser->lexer->count; i++) {
@@ -118,6 +120,7 @@ token_t *parser_peek(parser_t *parser) {
     return NULL;
 }
 token_t *parser_next(parser_t *parser) {
+    parser->previous_token = parser->current_token;
     if (parser->token_index + 1 < parser->lexer->count) {
         parser->current_token = parser->lexer->tokens[parser->token_index + 1];
         parser->token_index++;
@@ -148,6 +151,9 @@ void parser_raise(parser_t *parser, char *message, ...) {
         char *parser_source_context =
             parser_get_source_context(parser, parser->current_token);
         fprintf(stderr, "%s", parser_source_context);
+        if(parser_source_context[-1] != '\n'){
+            fprintf(stderr, "\n");
+        }
         for (unsigned int i = 0; i < parser->current_token->col; i++) {
             fprintf(stderr, " ");
         }
@@ -175,13 +181,12 @@ token_t *parser_expect(parser_t *parser, bool required, ...) {
     for (unsigned int i = 0; i < max; i++) {
         token_type = va_arg(args, int);
         if (token_type == -1) {
-            token_found = true;
             break;
         } else if ((int)token->type == token_type) {
             token_found = true;
             break;
         } else if (token_type == TOKEN_UNKNOWN) {
-            token_found = true;
+            // token_found = true;
             break;
         }
     }
@@ -191,7 +196,7 @@ token_t *parser_expect(parser_t *parser, bool required, ...) {
                      token->value);
         exit(2);
     }
-    if (token_found == false)
+    if (!token_found)
         token = NULL;
     return token_type == -1 ? NULL : token;
 }
@@ -212,13 +217,59 @@ ast_t *parse_remainder(parser_t *parser) {
     return NULL;
 }
 
+token_t * _parser_current_token = NULL;
+token_t * _parser_previous_token = NULL;
+unsigned int _parser_token_index = 0;
+void parser_push_state(parser_t * parser){
+    _parser_current_token = parser->current_token;
+ _parser_previous_token = parser->previous_token;
+ _parser_token_index = parser->token_index;
+}
+void parser_pop_state(parser_t * parser){
+    parser->current_token = _parser_current_token;
+    parser->previous_token = _parser_previous_token;
+    parser->token_index = _parser_token_index;
+}
+
+ast_t *parse_operator(parser_t *parser) {
+    parser_push_state(parser);
+    parser_next(parser);
+    if (!parser_expect(parser, false, TOKEN_EQUAL, TOKEN_GT, TOKEN_GTE,
+                        TOKEN_LT, TOKEN_LTE, TOKEN_NOT_EQUAL, -1)) {
+        parser_pop_state(parser);
+        return parse_remainder(parser);
+    }
+    ast_t *ast = NULL;
+    token_t *token_identifier = parser->previous_token;
+    token_t *token_operator = parser->current_token;
+    parser_next(parser);
+    ast_value_t *value = parse_value(parser);
+    if (token_operator->type == TOKEN_EQUAL) {
+        ast = (ast_t *)ast_equal_new(token_identifier->value, value);
+    } else if (token_operator->type == TOKEN_GT) {
+        ast = (ast_t *)ast_gt_new(token_identifier->value, value);
+    } else if (token_operator->type == TOKEN_GTE) {
+        ast = (ast_t *)ast_gte_new(token_identifier->value, value);
+    } else if (token_operator->type == TOKEN_LT) {
+        ast = (ast_t *)ast_lt_new(token_identifier->value, value);
+    } else if (token_operator->type == TOKEN_LTE) {
+        ast = (ast_t *)ast_lte_new(token_identifier->value, value);
+    } else if (token_operator->type == TOKEN_NOT_EQUAL) {
+        ast = (ast_t *)ast_not_equal_new(token_identifier->value, value);
+    }
+    return (ast_t *)ast;
+}
+
 ast_t *parse_assignment(parser_t *parser) {
     token_t *token = parser->current_token;
+
     token_t *token_next = parser_peek(parser);
     if (token_next->type == TOKEN_IS) {
         token = parser_next(parser);
     }
+
     if (token->type == TOKEN_IS) {
+
         token_t *token_identifier = parser->previous_token;
         parser_next(parser);
         ast_value_t *value = parse_value(parser);
@@ -226,8 +277,7 @@ ast_t *parse_assignment(parser_t *parser) {
             ast_assignment_new(token_identifier->value, value);
         return (ast_t *)assignment;
     }
-    return NULL;
-    // return parse_remainder(parser);
+    return parse_operator(parser);
 }
 
 ast_value_t *parse_value(parser_t *parser) {
@@ -252,35 +302,111 @@ ast_value_t *parse_value(parser_t *parser) {
 }
 
 ast_t *parse_for(parser_t *parser) {
-    if (!parser_expect(parser, false, TOKEN_FOR, -1))
-        return (ast_t *)parse_variable_definition(
-            parser); // parse_value(parser);
-    parser_next(parser);
+    if (!parser_advance(parser, false, TOKEN_FOR, -1)) {
+        return (ast_t *)parse_expression(parser); // parse_value(parser);
+    }
     parser_advance(parser, true, TOKEN_PAREN_OPEN, -1);
     ast_t *start = parse_expression(parser);
     ast_t *end = parse_expression(parser);
-    ast_t *statement = parse_expression(parser);
+    ast_t *expr = parse_expression(parser);
     parser_advance(parser, true, TOKEN_PAREN_CLOSE, -1);
     ast_t *closure = parse_closure(parser, TOKEN_BRACE_OPEN);
-    parser_advance(parser, true, TOKEN_BRACE_CLOSED);
-    ast_for_t *ast_for = ast_for_new(start, end, statement, closure);
+    parser_advance(parser, true, TOKEN_BRACE_CLOSE);
+    ast_for_t *ast_for = ast_for_new(start, end, expr, closure);
     return (ast_t *)ast_for;
 }
 
 ast_t *parse_while(parser_t *parser) {
-    if (!parser_advance(parser, false, TOKEN_WHILE, -1)) {
+    token_t *token = NULL;
+    if (!(token = parser_advance(parser, false, TOKEN_WHILE, -1))) {
         return parse_for(parser);
     }
+    printf("%d:%s\n", token->type, token->value);
     ast_t *statement = parse_closure(parser, TOKEN_PAREN_OPEN);
     ast_t *closure = parse_closure(parser, TOKEN_BRACE_OPEN);
     ast_while_t *ast_while = ast_while_new(statement, closure);
     return (ast_t *)ast_while;
 }
 
-ast_t *parse_variable_definition(parser_t *parser) {
+void parser_dump(parser_t *parser){
+    unsigned int prev_line = 1337;
+    unsigned int i = 0;
+    while(i < parser->lexer->count){
+        token_t * token = parser->lexer->tokens[i];
+        if(token->line != prev_line){
+            prev_line = token->line;
+            printf("%d:\t", token->line + 1);
+        }
+        printf(parser->lexer->tokens[i]->value);
+        i++;
+        if(parser->lexer->tokens[i] == parser->current_token){
+            break;
+        }
+    }
+    printf("\n");
+}
 
-    if (!parser_expect(parser, false, TOKEN_SYMBOL, -1))
-        return parse_while(parser);
+ast_t * parse_function_call(parser_t *parser) {
+    token_t *token = NULL;
+    
+    if (!(token = parser_expect(parser, false, TOKEN_SYMBOL, -1))) {
+        return parse_assignment(parser);
+    }
+    char * name = token->value; 
+    token = parser_peek(parser);
+
+    if(token->type == TOKEN_PAREN_OPEN) {
+        parser_next(parser);
+        printf("XXX\n");
+        dict_t * params = parse_params(parser);
+        
+        parser_dump(parser);
+        printf("XXX\n");
+    
+        ast_function_call_t * call = ast_function_call_new(name, params);
+        return (ast_t *)call;
+    }
+    return parse_assignment(parser);
+}
+
+dict_t * parse_params(parser_t *parser) {
+    parser_expect(parser,true,TOKEN_PAREN_OPEN, -1);
+    dict_t *params = dict_new();
+    token_t *token;
+
+    while ((token = parser_next(parser))) {
+    
+        if(token->type == TOKEN_PAREN_CLOSE){
+            break;
+        }
+    parser_dump(parser);
+        
+        parser_expect(parser, true, TOKEN_SYMBOL, -1);
+        ast_t * declaration = (ast_t *)parse_statement(parser);
+        char * name = token->value;
+        if(!declaration){
+            printf("NOTTAA\n");
+        }
+        dict_set(params,name,(void *)declaration);
+        token = parser_expect(parser, true, TOKEN_PAREN_CLOSE, TOKEN_COMMA, -1);
+        if(token->type == TOKEN_PAREN_CLOSE){
+            break;
+        }
+        //if(parser->current_token->type == TOKEN_COMMA){
+        //    parser_next(parser);   
+        //}
+
+    }
+    
+    parser_expect(parser, true, TOKEN_PAREN_CLOSE, -1);
+    parser_next(parser);
+    return params;
+}
+
+ast_t *parse_variable_definition(parser_t *parser) {
+    if (!parser_expect(parser, false, TOKEN_SYMBOL, -1)) {
+        return parse_function_call(parser);
+    }
     char *variable_identifiers = "int|char|bool|float|double|void";
     token_t *token = parser->current_token;
     char *matched_variable_identifier =
@@ -292,10 +418,14 @@ ast_t *parse_variable_definition(parser_t *parser) {
             string_match_option(token->value, user_defined_classes_string);
         free(user_defined_classes_string);
     }
-    if (!matched_variable_identifier) {
-        parser_expect(parser, true, -1);
-    }
 
+    if (!matched_variable_identifier) {
+        return parse_function_call(parser);
+    }
+    token = parser_peek(parser);
+    if(token->type != TOKEN_SYMBOL) {
+        return parse_function_call(parser);
+    }
     char *type = token->value;
     unsigned int stars = 0;
     while ((token = parser_next(parser)) && token->type == TOKEN_STAR) {
@@ -306,19 +436,31 @@ ast_t *parse_variable_definition(parser_t *parser) {
     }
     assert(token->type == TOKEN_SYMBOL);
     char *identifier = token->value;
-    ast_var_declaration_t *definition =
-        ast_var_declaration_new(type, identifier);
-    definition->stars = stars;
+    
     token = parser_next(parser);
-    if (token->type == TOKEN_IS) {
+    if(parser_expect(parser, false, TOKEN_PAREN_OPEN, -1)){
+        dict_t * params = parse_params(parser);
+        if(parser_expect(parser, true, TOKEN_BRACE_OPEN, -1)){
+            ast_t * body = parse_closure(parser, TOKEN_BRACE_OPEN);
+
+            ast_function_declaration_t * declaration = ast_function_declaration_new(type, identifier,params,body);
+
+         return (ast_t *)declaration;
+        }
+    } else if (parser_expect(parser, false, TOKEN_IS, -1)) {
         ast_t *assignment = parse_assignment(parser);
-        if (assignment)
-            ast_add_child((ast_t *)definition, (ast_t *)assignment);
+        ast_var_declaration_t * definition = ast_var_declaration_new(type, identifier);
+        definition->stars = stars;
+        ast_add_child((ast_t *)definition, (ast_t *)assignment);
+        return (ast_t *)definition;
     }
-    return (ast_t *)definition;
+    return NULL;
 }
 
-ast_t *parse_expression(parser_t *parser) { return parse_assignment(parser); }
+ast_t *parse_expression(parser_t *parser) {
+    ast_t *return_value = parse_variable_definition(parser);
+    return return_value;
+}
 
 ast_t *parse_closure(parser_t *parser, token_type_t open_type) {
 
@@ -328,7 +470,7 @@ ast_t *parse_closure(parser_t *parser, token_type_t open_type) {
     if (open_type == TOKEN_PAREN_OPEN) {
         close_type = TOKEN_PAREN_CLOSE;
     } else if (open_type == TOKEN_BRACE_OPEN) {
-        close_type = TOKEN_BRACE_CLOSED;
+        close_type = TOKEN_BRACE_CLOSE;
     } else if (open_type == TOKEN_UNKNOWN) {
         close_type = TOKEN_UNKNOWN;
     }
@@ -370,12 +512,14 @@ array_t *parse_class_extends(parser_t *parser,
 
 ast_t *parse_class_definition(parser_t *parser) {
     token_t *token;
-    if (!(token = parser_expect(parser, false, TOKEN_CLASS, -1)))
+    if (!(token = parser_expect(parser, false, TOKEN_CLASS, -1))) {
         return parse_while(parser);
-
+    }
     token = parser_next(parser);
-    // parser_expect(parser, true, TOKEN_SYMBOL, -1);
-    printf("clsname: %s\n", token->value);
+    if (!array_push_string(parser->class_list, token->value)) {
+        parser_raise(parser, "Class already defined: %s\n", token->value);
+        exit(3);
+    }
     ast_class_definition_t *definition = ast_class_definition_new(token->value);
     parser_next(parser);
     token = parser_expect(parser, true, TOKEN_PAREN_OPEN, TOKEN_BRACE_OPEN, -1);
@@ -394,16 +538,25 @@ ast_t *parse_class_definition(parser_t *parser) {
     }
     assert(definition->body);
 
-    if (!array_push_string(parser->class_list, definition->name)) {
-        parser_raise(parser, "Class already defined: %s\n", definition->name);
-        exit(3);
-    }
     return (ast_t *)definition;
 }
 
-ast_t *parse_statement(parser_t *parser) {
-    return parse_class_definition(parser);
+ast_t *parse_macro(parser_t *parser) {
+    if (!parser_expect(parser, false, TOKEN_MACRO, -1)) {
+        return parse_class_definition(parser);
+    }
+    char *macro_text = parser->current_token->value;
+    printf("COMES HERER!!\n");
+    printf("###%s\n",macro_text);
+    if (!strcmp(macro_text, "debug")) {
+        token_t *token_next = parser_peek(parser);
+        printf("t.line: %d t.col %d t.type: %d t.value:\"%s\"\n",
+               token_next->line, token_next->col, token_next->value);
+    }
+    return NULL;
 }
+
+ast_t *parse_statement(parser_t *parser) { return parse_macro(parser); }
 
 ast_t *parse(lexer_t *lexer) {
     parser_t *parser = parser_new(lexer);

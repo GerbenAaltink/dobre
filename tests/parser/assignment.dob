@@ -1,0 +1,5 @@
+class StringA{}
+class StringB{}
+
+StringA a = "Test"
+StringB b = "Tost"

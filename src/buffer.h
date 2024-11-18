@@ -144,7 +144,7 @@ char *buffer_to_str(buffer_t *buff) {
     return result;
 }
 
-char ustrncmp(const char *s1, const char *s2, size_t n) {
+char ustrncmp2(const char *s1, const char *s2, size_t n) {
     return strncmp((char *)s1, (char *)s2, n);
     while (n && *s1 == *s2) {
         n--;
@@ -153,7 +153,7 @@ char ustrncmp(const char *s1, const char *s2, size_t n) {
     }
     return *s1 != *s2;
 }
-size_t ustrlen(const char *s) { return strlen((char *)s); }
+size_t ustrlen2(const char *s) { return strlen((char *)s); }
 
 char *string_match_option(char *buff, char *options) {
     char *option = NULL;
@@ -191,7 +191,7 @@ char *string_match_option(char *buff, char *options) {
             return buff;
         }
 
-        if (!ustrncmp(buff, (char *)option, option_length)) {
+        if (!ustrncmp((const unsigned char *)buff, (const unsigned char *)option, option_length)) {
 
             if (reverse) {
                 return NULL;

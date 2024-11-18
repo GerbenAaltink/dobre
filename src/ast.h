@@ -1,9 +1,11 @@
 #ifndef AST_H
 #define AST_H
 #include "array.h"
+#include "dict.h"
 #include "dobre.h"
 #include "string.h"
 #include <stdbool.h>
+
 
 typedef enum ast_type_t {
     AST_NODE,
@@ -20,7 +22,9 @@ typedef enum ast_type_t {
     AST_GT,
     AST_GTE,
     AST_NOT,
-    AST_NOT_EQUAL
+    AST_NOT_EQUAL,
+    AST_FUNCTION_DECLARATION,
+    AST_FUNCTION_CALL
 } ast_type_t;
 
 typedef struct ast_t {
@@ -37,43 +41,43 @@ typedef struct ast_value_t {
 
 typedef struct ast_equal_t {
     ast_t node;
-    char *identifier;
+    char *name;
     ast_value_t *value;
 } ast_equal_t;
 
 typedef struct ast_lt_t {
     ast_t node;
-    char *identifier;
+    char *name;
     ast_value_t *value;
 } ast_lt_t;
 
 typedef struct ast_lte_t {
     ast_t node;
-    char *identifier;
+    char *name;
     ast_value_t *value;
 } ast_lte_t;
 
 typedef struct ast_gt_t {
     ast_t node;
-    char *identifier;
+    char *name;
     ast_value_t *value;
 } ast_gt_t;
 
 typedef struct ast_gte_t {
     ast_t node;
-    char *identifier;
+    char *name;
     ast_value_t *value;
 } ast_gte_t;
 
 typedef struct ast_not_t {
     ast_t node;
-    char *identifier;
+    char *name;
     ast_value_t *value;
 } ast_not_t;
 
 typedef struct ast_not_equal_t {
     ast_t node;
-    char *identifier;
+    char *name;
     ast_value_t *value;
 } ast_not_equal_t;
 
@@ -92,16 +96,32 @@ typedef struct ast_class_definition_t {
     array_t *extends;
 } ast_class_definition_t;
 
+typedef struct ast_function_declaration_t {
+    ast_t node;
+    char *name;
+    char * type;
+    ast_t *body;
+    dict_t *params;
+    unsigned int stars;
+} ast_function_declaration_t;
+
+typedef struct ast_function_call_t {
+    ast_t node;
+    char *name;
+    dict_t *params;
+    unsigned int stars;
+} ast_function_call_t;
+
 typedef struct ast_var_declaration_t {
     ast_t node;
     char *type;
-    char *identifier;
+    char *name;
     unsigned int stars;
 } ast_var_declaration_t;
 
 typedef struct ast_assignment_t {
     ast_t node;
-    char *identifier;
+    char *name;
     ast_value_t *value;
 } ast_assignment_t;
 
@@ -116,9 +136,9 @@ void ast_delete(ast_t *node);
 ast_value_t *ast_value_new(char *value, char *type);
 ast_class_definition_t *ast_class_definition_new(char *name);
 void ast_class_definition_delete(ast_class_definition_t *definition);
-ast_var_declaration_t *ast_var_declaration_new(char *type, char *identifier);
+ast_var_declaration_t *ast_var_declaration_new(char *type, char *name);
 void ast_var_declaration_delete(ast_var_declaration_t *declaration);
-ast_assignment_t *ast_assignment_new(char *identifier, ast_value_t *value);
+ast_assignment_t *ast_assignment_new(char *name, ast_value_t *value);
 void ast_assignment_delete(ast_assignment_t *assignment);
 void ast_dump(ast_t *node);
 void ast_init(ast_t *ast) {
@@ -140,7 +160,8 @@ void ast_lt_delete(ast_lt_t *ast);
 void ast_lte_delete(ast_lte_t *ast);
 void ast_not_delete(ast_not_t *ast);
 void ast_not_equal_delete(ast_not_equal_t *ast);
-
+void ast_function_declaration_delete(ast_function_declaration_t * ast);
+void ast_function_call_delete(ast_function_call_t * ast);
 void ast_delete(ast_t *node) {
     ast_dump(node);
     ast_t *child = node;
@@ -171,8 +192,11 @@ void ast_delete(ast_t *node) {
         ast_not_equal_delete((ast_not_equal_t *)child);
     } else if (child->type == AST_NOT) {
         ast_not_delete((ast_not_t *)child);
-    } else
-        printf("NO DELETION\n");
+    } else if(child->type == AST_FUNCTION_DECLARATION){
+        ast_function_declaration_delete((ast_function_declaration_t *)child);
+    } else if(child->type == AST_FUNCTION_CALL){
+        ast_function_call_delete((ast_function_call_t *)child);
+    }
     for (unsigned int i = 0; i < child->children_count; i++)
         ast_delete(child->children[i]);
     free(child);
@@ -203,6 +227,8 @@ void ast_lt_dump(ast_lt_t *ast);
 void ast_lte_dump(ast_lte_t *ast);
 void ast_gt_dump(ast_gt_t *ast);
 void ast_gte_dump(ast_gte_t *ast);
+void ast_function_declaration_dump(ast_function_declaration_t * ast);
+void ast_function_call_dump(ast_function_call_t * ast);
 void ast_dump(ast_t *node) {
     if (!node)
         return;
@@ -228,6 +254,8 @@ void ast_dump(ast_t *node) {
         ast_gt_dump((ast_gt_t *)node);
     } else if (node->type == AST_GTE) {
         ast_gte_dump((ast_gte_t *)node);
+    }else if(node->type == AST_FUNCTION_DECLARATION){
+        ast_function_declaration_dump((ast_function_declaration_t *)node);
     }
 }
 
@@ -279,19 +307,19 @@ void ast_class_definition_dump(ast_class_definition_t *definition) {
     printf(")\n");
 }
 
-ast_var_declaration_t *ast_var_declaration_new(char *type, char *identifier) {
+ast_var_declaration_t *ast_var_declaration_new(char *type, char *name) {
     ast_var_declaration_t *result =
         (ast_var_declaration_t *)malloc(sizeof(ast_var_declaration_t));
     ast_init(&result->node);
 
     result->node.type = AST_VAR_DECLARATION;
     result->type = strdup(type);
-    result->identifier = strdup(identifier);
+    result->name = strdup(name);
     result->stars = 0;
     return result;
 }
 void ast_var_declaration_dump(ast_var_declaration_t *declaration) {
-    printf("Declared variable %s with type %s", declaration->identifier,
+    printf("Declared variable %s with type %s", declaration->name,
            declaration->type);
     for (unsigned int i = 0; i < declaration->stars; i++) {
         printf("*");
@@ -299,30 +327,30 @@ void ast_var_declaration_dump(ast_var_declaration_t *declaration) {
     printf("\n");
 }
 void ast_var_declaration_delete(ast_var_declaration_t *declaration) {
-    printf("Free %s %s.\n", declaration->type, declaration->identifier);
+    printf("Free %s %s.\n", declaration->type, declaration->name);
     if (declaration->type)
         free(declaration->type);
-    if (declaration->identifier)
-        free(declaration->identifier);
+    if (declaration->name)
+        free(declaration->name);
 }
 void ast_assignment_dump(ast_assignment_t *assignment) {
-    printf("Assigned %s with \"%s\".\n", assignment->identifier,
+    printf("Assigned %s with \"%s\".\n", assignment->name,
            assignment->value->value);
 }
-ast_assignment_t *ast_assignment_new(char *identifier, ast_value_t *value) {
+ast_assignment_t *ast_assignment_new(char *name, ast_value_t *value) {
     ast_assignment_t *result =
         (ast_assignment_t *)malloc(sizeof(ast_assignment_t));
     ast_init(&result->node);
 
     result->node.type = AST_ASSIGNMENT;
-    result->identifier = strdup(identifier);
+    result->name = strdup(name);
     result->value = value;
     return result;
 }
 void ast_assignment_delete(ast_assignment_t *assignment) {
-    printf("Free assignment %s.\n", assignment->identifier);
+    printf("Free assignment %s.\n", assignment->name);
 
-    free(assignment->identifier);
+    free(assignment->name);
     ast_value_delete(assignment->value);
 }
 
@@ -391,129 +419,186 @@ void ast_for_delete(ast_for_t *for_fn) {
     ast_delete(for_fn->closure);
 }
 
-ast_equal_t *ast_equal_new(char *identifier, ast_value_t *value) {
+ast_equal_t *ast_equal_new(char *name, ast_value_t *value) {
     ast_equal_t *ast = (ast_equal_t *)malloc(sizeof(ast_equal_t));
     ast_init(&ast->node);
     ast->node.type = AST_EQUAL;
-    ast->identifier = strdup(identifier);
+    ast->name = strdup(name);
     ast->value = value;
     return ast;
 }
 void ast_equal_dump(ast_equal_t *ast) {
-    printf("Equal comparison %s with \"%s\".\n", ast->identifier,
+    printf("Equal comparison %s with \"%s\".\n", ast->name,
            ast->value->value);
 }
 void ast_equal_delete(ast_equal_t *ast) {
-    printf("Free equal comparison %s.\n", ast->identifier);
-    free(ast->identifier);
+    printf("Free equal comparison %s.\n", ast->name);
+    free(ast->name);
     ast_value_delete(ast->value);
 }
 
-ast_lt_t *ast_lt_new(char *identifier, ast_value_t *value) {
+ast_lt_t *ast_lt_new(char *name, ast_value_t *value) {
     ast_lt_t *ast = (ast_lt_t *)malloc(sizeof(ast_lt_t));
     ast_init(&ast->node);
     ast->node.type = AST_LT;
-    ast->identifier = strdup(identifier);
+    ast->name = strdup(name);
     ast->value = value;
     return ast;
 }
 void ast_lt_dump(ast_lt_t *ast) {
-    printf("Lt comparison %s with \"%s\".\n", ast->identifier,
+    printf("Lt comparison %s with \"%s\".\n", ast->name,
            ast->value->value);
 }
 void ast_lt_delete(ast_lt_t *ast) {
-    printf("Free lt comparison %s.\n", ast->identifier);
-    free(ast->identifier);
+    printf("Free lt comparison %s.\n", ast->name);
+    free(ast->name);
     ast_value_delete(ast->value);
 }
 
-ast_lte_t *ast_lte_new(char *identifier, ast_value_t *value) {
+ast_lte_t *ast_lte_new(char *name, ast_value_t *value) {
     ast_lte_t *ast = (ast_lte_t *)malloc(sizeof(ast_lte_t));
     ast_init(&ast->node);
     ast->node.type = AST_LTE;
-    ast->identifier = strdup(identifier);
+    ast->name = strdup(name);
     ast->value = value;
     return ast;
 }
 void ast_lte_dump(ast_lte_t *ast) {
-    printf("Lte comparison %s with \"%s\".\n", ast->identifier,
+    printf("Lte comparison %s with \"%s\".\n", ast->name,
            ast->value->value);
 }
 void ast_lte_delete(ast_lte_t *ast) {
-    printf("Free lte comparison %s.\n", ast->identifier);
-    free(ast->identifier);
+    printf("Free lte comparison %s.\n", ast->name);
+    free(ast->name);
     ast_value_delete(ast->value);
 }
 
-ast_gt_t *ast_gt_new(char *identifier, ast_value_t *value) {
+ast_gt_t *ast_gt_new(char *name, ast_value_t *value) {
     ast_gt_t *ast = (ast_gt_t *)malloc(sizeof(ast_gt_t));
     ast_init(&ast->node);
     ast->node.type = AST_GT;
-    ast->identifier = strdup(identifier);
+    ast->name = strdup(name);
     ast->value = value;
     return ast;
 }
 void ast_gt_dump(ast_gt_t *ast) {
-    printf("Gt comparison %s with \"%s\".\n", ast->identifier,
+    printf("Gt comparison %s with \"%s\".\n", ast->name,
            ast->value->value);
 }
 void ast_gt_delete(ast_gt_t *ast) {
-    printf("Free gt comparison %s.\n", ast->identifier);
-    free(ast->identifier);
+    printf("Free gt comparison %s.\n", ast->name);
+    free(ast->name);
     ast_value_delete(ast->value);
 }
-ast_gte_t *ast_gte_new(char *identifier, ast_value_t *value) {
+ast_gte_t *ast_gte_new(char *name, ast_value_t *value) {
     ast_gte_t *ast = (ast_gte_t *)malloc(sizeof(ast_gte_t));
     ast_init(&ast->node);
     ast->node.type = AST_GTE;
-    ast->identifier = strdup(identifier);
+    ast->name = strdup(name);
     ast->value = value;
     return ast;
 }
 void ast_gte_dump(ast_gte_t *ast) {
-    printf("Gte comparison %s with \"%s\".\n", ast->identifier,
+    printf("Gte comparison %s with \"%s\".\n", ast->name,
            ast->value->value);
 }
 void ast_gte_delete(ast_gte_t *ast) {
-    printf("Free gte comparison %s.\n", ast->identifier);
-    free(ast->identifier);
+    printf("Free gte comparison %s.\n", ast->name);
+    free(ast->name);
     ast_value_delete(ast->value);
 }
 
-ast_not_equal_t *ast_not_equal_new(char *identifier, ast_value_t *value) {
+ast_not_equal_t *ast_not_equal_new(char *name, ast_value_t *value) {
     ast_not_equal_t *ast = (ast_not_equal_t *)malloc(sizeof(ast_not_equal_t));
     ast_init(&ast->node);
     ast->node.type = AST_NOT_EQUAL;
-    ast->identifier = strdup(identifier);
+    ast->name = strdup(name);
     ast->value = value;
     return ast;
 }
 void ast_not_equal_dump(ast_not_equal_t *ast) {
-    printf("not_equal comparison %s with \"%s\".\n", ast->identifier,
+    printf("not_equal comparison %s with \"%s\".\n", ast->name,
            ast->value->value);
 }
 void ast_not_equal_delete(ast_not_equal_t *ast) {
-    printf("Free not_equal comparison %s.\n", ast->identifier);
-    free(ast->identifier);
+    printf("Free not_equal comparison %s.\n", ast->name);
+    free(ast->name);
     ast_value_delete(ast->value);
 }
 
-ast_not_t *ast_not_new(char *identifier, ast_value_t *value) {
+ast_not_t *ast_not_new(char *name, ast_value_t *value) {
     ast_not_t *ast = (ast_not_t *)malloc(sizeof(ast_not_t));
     ast_init(&ast->node);
     ast->node.type = AST_NOT;
-    ast->identifier = strdup(identifier);
+    ast->name = strdup(name);
     ast->value = value;
     return ast;
 }
 void ast_not_dump(ast_not_t *ast) {
-    printf("not comparison %s with \"%s\".\n", ast->identifier,
+    printf("not comparison %s with \"%s\".\n", ast->name,
            ast->value->value);
 }
 void ast_not_delete(ast_not_t *ast) {
-    printf("Free not comparison %s.\n", ast->identifier);
-    free(ast->identifier);
+    printf("Free not comparison %s.\n", ast->name);
+    free(ast->name);
     ast_value_delete(ast->value);
+}
+
+ast_function_declaration_t *ast_function_declaration_new(char *type, char *name, dict_t * params, ast_t * body) {
+    ast_function_declaration_t *result =
+        (ast_function_declaration_t *)calloc(1, sizeof(ast_function_declaration_t));
+    ast_init(&result->node);
+    result->node.type = AST_FUNCTION_DECLARATION;
+    result->name = strdup(name);
+    result->type = strdup(type);
+    result->params = params;
+    result->body = body;
+    return result;
+}
+void ast_function_declaration_delete(ast_function_declaration_t *declaration) {
+    printf("Free class %s\n", declaration->name);
+    if (declaration->name)
+        free(declaration->name);
+    if(declaration->type)
+        free(declaration->type);
+    if (declaration->body) {
+        ast_delete(declaration->body);
+    }
+    if(declaration->params){
+        dict_delete(declaration->params);
+    }
+}
+void ast_function_declaration_dump(ast_function_declaration_t *definition) {
+    printf("Function declaration of %s<%s>", definition->name,definition->type ? definition->type : "NULL");
+    printf("params: ");
+    char * dict_string = dict_to_string(definition->params);
+    printf("%s\n", dict_string);
+    free(dict_string);
+}
+
+ast_function_call_t *ast_function_call_new(char *name, dict_t * params) {
+    ast_function_call_t *result =
+        (ast_function_call_t *)calloc(1, sizeof(ast_function_call_t));
+    ast_init(&result->node);
+    result->node.type = AST_FUNCTION_CALL;
+    result->name = strdup(name);
+    result->params = params;
+    return result;
+}
+void ast_function_call_delete(ast_function_call_t *call) {
+    printf("Free class %s\n", call->name);
+    if (call->name)
+        free(call->name);
+    if(call->params){
+        dict_delete(call->params);
+    }
+}
+void ast_function_call_dump(ast_function_call_t *definition) {
+    printf("Function call of %s\n", definition->name);
+    printf("params: ");
+    char * dict_string = dict_to_string(definition->params);
+    printf("%s\n", dict_string);
+    free(dict_string);
 }
 
 #endif
